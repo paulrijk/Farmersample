@@ -13,6 +13,7 @@ export interface CreateBatch { farmId: string; product: string; weightGrams: num
 export interface LotContribution { sampleBatchId: string; batchCode: string; farmName: string; farmCode: string; volumeKg: number; compositeSharePercent: number; batchGrade: string | null; }
 export interface Lot { id: string; code: string; product: string; grade: string; status: string; closedReason: string | null; committedVolumeKg: number; priceMinPerKg: number; priceMaxPerKg: number; currency: string; incoterm: string; validUntil: string; sampleKind: string; shareOverrideReason: string | null; lotGrading: Grading | null; contributions: LotContribution[]; publishBlockers: string[]; }
 export interface CreateLot { product: string; grade: string; contributions: { sampleBatchId: string; volumeKg: number; compositeSharePercent: number | null }[]; shareOverrideReason: string | null; priceMinPerKg: number; priceMaxPerKg: number; currency: string; incoterm: string; validUntil: string; }
+export interface FarmPhoto { id: string; imageUrl: string; width: number; height: number; caption: string | null; showsPeople: boolean; status: string; uploadedBy: string; uploadedAt: string; reviewedBy: string | null; reviewNote: string | null; visibleToBuyers: boolean; notVisibleBecause: string | null; }
 export interface SampleRequest { id: string; farmCode: string | null; lotCode: string | null; companyName: string; contactName: string; email: string; countryCode: string; message: string | null; createdAt: string; handled: boolean; }
 
 @Injectable({ providedIn: 'root' })
@@ -26,6 +27,14 @@ export class StaffApi {
   publish(id: string) { return this.http.post(`${this.base}/farms/${id}/publish`, {}); }
   unpublish(id: string) { return this.http.post(`${this.base}/farms/${id}/unpublish`, {}); }
   settings() { return this.http.get<{ publicBaseUrl: string }>(`${this.base}/settings`); }
+  photos(farmId: string) { return this.http.get<FarmPhoto[]>(`${this.base}/farms/${farmId}/photos`); }
+  uploadPhoto(farmId: string, file: File, caption: string, showsPeople: boolean) {
+    const form = new FormData(); form.append('file', file); form.append('caption', caption); form.append('showsPeople', String(showsPeople));
+    return this.http.post<FarmPhoto>(`${this.base}/farms/${farmId}/photos`, form);
+  }
+  reviewPhoto(id: string, buyerSafe: boolean, checkedNoIdentifyingDetails: boolean, note: string | null) {
+    return this.http.post<FarmPhoto>(`${this.base}/photos/${id}/review`, { buyerSafe, checkedNoIdentifyingDetails, note });
+  }
   batches() { return this.http.get<SampleBatch[]>(`${this.base}/sample-batches`); }
   createBatch(r: CreateBatch) { return this.http.post<SampleBatch>(`${this.base}/sample-batches`, r); }
   gradeBatch(id: string, g: GradingInput) { return this.http.post<SampleBatch>(`${this.base}/sample-batches/${id}/gradings`, g); }

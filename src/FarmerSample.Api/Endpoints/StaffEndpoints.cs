@@ -5,6 +5,7 @@ using FarmerSample.Core.Modules.SupplyQuality;
 using FarmerSample.Core.Modules.SupplyQuality.Contracts;
 using FarmerSample.Core.Persistence;
 using FarmerSample.Core.SharedKernel;
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 
 namespace FarmerSample.Api.Endpoints;
@@ -58,6 +59,27 @@ public static class StaffEndpoints
         staff.MapPost("/farms/{id:guid}/unpublish", async (Guid id, IFarmService farms, CancellationToken ct) =>
             await farms.UnpublishAsync(id, ct) ? Results.NoContent() : Results.NotFound());
 
+        // ---- farm photos ----
+        staff.MapGet("/farms/{id:guid}/photos", (Guid id, IPhotoService photos, CancellationToken ct) => photos.ListAsync(id, ct));
+
+        staff.MapPost("/farms/{id:guid}/photos", async (Guid id, HttpRequest request, IPhotoService photos, ClaimsPrincipal user, CancellationToken ct) =>
+        {
+            if (!request.HasFormContentType) return Results.BadRequest();
+            var form = await request.ReadFormAsync(ct);
+            var file = form.Files.GetFile("file");
+            if (file is null) return Results.Problem("Choose a photo to upload.", statusCode: 422);
+            if (file.Length > 15 * 1024 * 1024) return Results.Problem("Photos can be at most 15 MB.", statusCode: 422);
+            using var buffer = new MemoryStream();
+            await file.CopyToAsync(buffer, ct);
+            return Results.Ok(await photos.UploadAsync(id, buffer.ToArray(), file.FileName, form["caption"], form["showsPeople"] == "true", Who(user), ct));
+        }).DisableAntiforgery();   // our AntiforgeryFilter (header token) still runs for this group
+
+        staff.MapPost("/photos/{id:guid}/review", (Guid id, PhotoReviewRequest r, IPhotoService photos, ClaimsPrincipal user, CancellationToken ct) =>
+            photos.ReviewAsync(id, r, Who(user), ct));
+
+        staff.MapGet("/photos/{id:guid}/image", async (Guid id, IPhotoService photos, CancellationToken ct) =>
+            await photos.GetStaffImageAsync(id, ct) is var (stream, type) ? Results.Stream(stream, type) : Results.NotFound());
+
         // ---- sample batches and grading ----
         staff.MapGet("/sample-batches", (IQualityService q, CancellationToken ct) => q.ListBatchesAsync(ct));
         staff.MapPost("/sample-batches", (CreateSampleBatchRequest r, IQualityService q, CancellationToken ct) => q.CreateBatchAsync(r, ct));
@@ -73,4 +95,6 @@ public static class StaffEndpoints
 
         staff.MapGet("/sample-requests", (ISampleRequestService s, CancellationToken ct) => s.ListAsync(ct));
     }
+
+    private static string Who(ClaimsPrincipal user) => user.Identity?.Name ?? "unknown";
 }

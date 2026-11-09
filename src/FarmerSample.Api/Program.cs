@@ -15,8 +15,9 @@ using OpenTelemetry.Trace;
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
-builder.Services.AddFarmerSampleCore(config.GetConnectionString("Default")
-    ?? throw new InvalidOperationException("ConnectionStrings:Default is not configured."));
+builder.Services.AddFarmerSampleCore(
+    config.GetConnectionString("Default") ?? throw new InvalidOperationException("ConnectionStrings:Default is not configured."),
+    config.GetConnectionString("Blobs"));
 
 // ---- Identity: cookie sessions, no tokens in the browser ----
 builder.Services

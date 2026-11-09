@@ -258,6 +258,70 @@ namespace FarmerSample.Core.Persistence.Migrations
                     b.ToTable("farms", "supply");
                 });
 
+            modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.FarmPhoto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Caption")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("OriginalBlobName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("PublicId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RenditionBlobName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ReviewNote")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReviewedBy")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("ShowsPeople")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTimeOffset>("UploadedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UploadedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FarmId");
+
+                    b.HasIndex("PublicId")
+                        .IsUnique();
+
+                    b.ToTable("farm_photos", "supply");
+                });
+
             modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.FarmProduct", b =>
                 {
                     b.Property<Guid>("Id")
@@ -815,6 +879,15 @@ namespace FarmerSample.Core.Persistence.Migrations
                     b.Navigation("Farmer");
                 });
 
+            modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.FarmPhoto", b =>
+                {
+                    b.HasOne("FarmerSample.Core.Modules.SupplyQuality.Farm", null)
+                        .WithMany("Photos")
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.FarmProduct", b =>
                 {
                     b.HasOne("FarmerSample.Core.Modules.SupplyQuality.Farm", null)
@@ -935,6 +1008,8 @@ namespace FarmerSample.Core.Persistence.Migrations
             modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.Farm", b =>
                 {
                     b.Navigation("Certifications");
+
+                    b.Navigation("Photos");
 
                     b.Navigation("Products");
                 });

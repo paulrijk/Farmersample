@@ -1,5 +1,6 @@
 using FarmerSample.Core.Modules.Catalogue;
 using FarmerSample.Core.Modules.Catalogue.Contracts;
+using FarmerSample.Core.Modules.SupplyQuality;
 using FarmerSample.Core.Modules.SupplyQuality.Contracts;
 using FarmerSample.Core.SharedKernel;
 
@@ -49,6 +50,14 @@ public static class PublicEndpoints
             if (!PublicCode.TryNormalize(code, out var normalized)) return Results.NotFound();
             var kind = normalized[..2] switch { PublicCode.FarmPrefix => "farm", PublicCode.LotPrefix => "lot", _ => null };
             return kind is null ? Results.NotFound() : Results.Ok(new { kind, code = normalized });
+        });
+
+        // Buyer-safe renditions only (re-encoded, no metadata); 404 for anything else, including withdrawn consent.
+        pub.MapGet("/photos/{publicId:guid}", async (Guid publicId, IPhotoService photos, HttpContext http, CancellationToken ct) =>
+        {
+            if (await photos.GetPublicImageAsync(publicId, ct) is not var (stream, type)) return Results.NotFound();
+            http.Response.Headers.CacheControl = "public, max-age=3600";
+            return Results.Stream(stream, type);
         });
 
         pub.MapPost("/sample-requests", async (SampleRequestInput input, ISampleRequestService service, CancellationToken ct) =>

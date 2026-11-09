@@ -13,7 +13,8 @@ public sealed record PublicFarmDto(
     decimal? Hectares,
     string? Story,
     IReadOnlyList<PublicProductDto> Products,
-    IReadOnlyList<string> Certifications);
+    IReadOnlyList<string> Certifications,
+    IReadOnlyList<PublicPhotoDto> Photos);
 
 public sealed record PublicProductDto(string Product, string? Grade, int[] HarvestMonths);
 

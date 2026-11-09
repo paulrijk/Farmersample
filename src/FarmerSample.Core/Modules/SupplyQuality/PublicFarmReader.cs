@@ -24,6 +24,7 @@ internal sealed class PublicFarmReader(AppDbContext db) : IPublicFarmReader
         .Include(f => f.Farmer!).ThenInclude(f => f.Consents)
         .Include(f => f.Products)
         .Include(f => f.Certifications)
+        .Include(f => f.Photos.Where(p => p.Status == PhotoStatus.BuyerSafe))
         .Where(f => f.Status == FarmStatus.Published)
         // No public page at all without an active public-profile consent.
         .Where(f => f.Farmer!.Consents.Any(c => c.WithdrawnAt == null && (c.Purposes & ConsentPurpose.PublicProfile) != 0));
@@ -47,7 +48,9 @@ internal sealed class PublicFarmReader(AppDbContext db) : IPublicFarmReader
                 Hectares: f.Hectares,
                 Story: Has(ConsentPurpose.FamilyStory) ? f.Story : null,
                 Products: f.Products.OrderBy(p => p.Product).Select(p => new PublicProductDto(p.Product, p.Grade, p.HarvestMonths)).ToList(),
-                Certifications: f.Certifications.OrderBy(c => c.Scheme).Select(c => c.Scheme).ToList());
+                Certifications: f.Certifications.OrderBy(c => c.Scheme).Select(c => c.Scheme).ToList(),
+                Photos: f.Photos.Where(p => PhotoService.PublicBlocker(p, f) is null).OrderBy(p => p.UploadedAt)
+                    .Select(p => new PublicPhotoDto($"/api/public/photos/{p.PublicId}", p.Width, p.Height, p.Caption)).ToList());
         }).ToList();
     }
 }

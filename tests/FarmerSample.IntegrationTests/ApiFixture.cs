@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 
 namespace FarmerSample.IntegrationTests;
@@ -18,10 +19,11 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
     public const double CanaryLatitude = 7.123456789;
 
     private readonly PostgreSqlContainer _db = new PostgreSqlBuilder("postgres:17").Build();
+    private readonly AzuriteContainer _blobs = new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite").WithInMemoryPersistence().WithCommand("--skipApiVersionCheck").Build();
 
     public async Task InitializeAsync()
     {
-        await _db.StartAsync();
+        await Task.WhenAll(_db.StartAsync(), _blobs.StartAsync());
         using var scope = Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         await db.Database.MigrateAsync();
@@ -53,6 +55,7 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
     {
         builder.UseEnvironment("Testing");
         builder.UseSetting("ConnectionStrings:Default", _db.GetConnectionString());
+        builder.UseSetting("ConnectionStrings:Blobs", _blobs.GetConnectionString());
         builder.UseSetting("Auth:RequireStaffMfa", "true");
     }
 
@@ -60,5 +63,6 @@ public sealed class ApiFixture : WebApplicationFactory<Program>, IAsyncLifetime
     {
         await base.DisposeAsync();
         await _db.DisposeAsync();
+        await _blobs.DisposeAsync();
     }
 }

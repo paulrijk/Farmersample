@@ -3,6 +3,7 @@ export interface PublicProduct { product: string; grade: string | null; harvestM
 export interface PublicFarm {
   code: string; name: string; farmerName: string | null; region: string; country: string;
   hectares: number | null; story: string | null; products: PublicProduct[]; certifications: string[];
+  photos: { url: string; width: number; height: number; caption: string | null }[];
 }
 export interface PublicGrading { grade: string; moisturePercent: number | null; densityGramsPerLitre: number | null; cleanliness: string | null; gradedOn: string; }
 export interface PublicLotFarm { code: string; name: string; region: string; sharePercent: number; }

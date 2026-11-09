@@ -29,6 +29,7 @@ const PURPOSES: [string, string][] = [
               <td><span class="chip" [class.chip-gold]="f.status !== 'Published'">{{ f.status }}</span></td>
               <td class="actions">
                 <button class="btn btn-ghost sm" (click)="consentFor.set(f)">Record consent</button>
+                <a class="btn btn-ghost sm" [routerLink]="['/farms', f.id, 'photos']">Photos</a>
                 <a class="btn btn-ghost sm" routerLink="/labels" [queryParams]="{ farm: f.code }">Sign label</a>
                 @if (f.status === 'Published') {
                   <a class="btn btn-ghost sm" [href]="site + '/farms/' + f.code" target="_blank" rel="noopener">View</a>

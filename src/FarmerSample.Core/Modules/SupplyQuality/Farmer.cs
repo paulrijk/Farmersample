@@ -42,6 +42,7 @@ public class Farm
 
     public List<FarmProduct> Products { get; set; } = [];
     public List<Certification> Certifications { get; set; } = [];
+    public List<FarmPhoto> Photos { get; set; } = [];
 }
 
 public class FarmProduct

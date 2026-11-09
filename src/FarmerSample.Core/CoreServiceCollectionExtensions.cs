@@ -9,8 +9,12 @@ namespace FarmerSample.Core;
 
 public static class CoreServiceCollectionExtensions
 {
-    public static IServiceCollection AddFarmerSampleCore(this IServiceCollection services, string connectionString)
+    public static IServiceCollection AddFarmerSampleCore(this IServiceCollection services, string connectionString, string? blobConnectionString = null)
     {
+        // Azurite's well-known local development account when nothing is configured.
+        services.AddSingleton(new Azure.Storage.Blobs.BlobServiceClient(blobConnectionString ?? "UseDevelopmentStorage=true"));
+        services.AddSingleton<FarmerSample.Core.Storage.IBlobStore, FarmerSample.Core.Storage.AzureBlobStore>();
+        services.AddScoped<IPhotoService, PhotoService>();
         services.AddDbContext<AppDbContext>(o => o.UseNpgsql(connectionString));
         services.AddScoped<IPublicFarmReader, PublicFarmReader>();
         services.AddScoped<IFarmService, FarmService>();

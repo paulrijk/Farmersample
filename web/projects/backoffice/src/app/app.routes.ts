@@ -9,6 +9,7 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'farms' },
       { path: 'farms', loadComponent: () => import('./pages/farms').then(m => m.FarmsPage), title: 'Farms — back office' },
       { path: 'farms/new', loadComponent: () => import('./pages/new-farm').then(m => m.NewFarmPage), title: 'New farm — back office' },
+      { path: 'farms/:id/photos', loadComponent: () => import('./pages/farm-photos').then(m => m.FarmPhotosPage), title: 'Farm photos — back office' },
       { path: 'sample-batches', loadComponent: () => import('./pages/sample-batches').then(m => m.SampleBatchesPage), title: 'Sample batches — back office' },
       { path: 'lots', loadComponent: () => import('./pages/lots').then(m => m.LotsPage), title: 'Lots — back office' },
       { path: 'lots/new', loadComponent: () => import('./pages/new-lot').then(m => m.NewLotPage), title: 'New lot — back office' },

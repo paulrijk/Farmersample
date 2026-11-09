@@ -19,6 +19,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Farmer> Farmers => Set<Farmer>();
     public DbSet<Farm> Farms => Set<Farm>();
     public DbSet<FarmerConsent> FarmerConsents => Set<FarmerConsent>();
+    public DbSet<FarmPhoto> FarmPhotos => Set<FarmPhoto>();
     public DbSet<SampleBatch> SampleBatches => Set<SampleBatch>();
     public DbSet<Grading> Gradings => Set<Grading>();
     public DbSet<Lot> Lots => Set<Lot>();
@@ -84,6 +85,14 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             e.Property(x => x.Evidence).HasConversion<string>().HasMaxLength(30);
         });
 
+        b.Entity<FarmPhoto>(e =>
+        {
+            e.ToTable("farm_photos", "supply");
+            e.HasIndex(x => x.PublicId).IsUnique();
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+            e.Property(x => x.Caption).HasMaxLength(300);
+            e.HasOne<Farm>().WithMany(f => f.Photos).HasForeignKey(x => x.FarmId);
+        });
         b.Entity<SampleBatch>(e =>
         {
             e.ToTable("sample_batches", "supply");

@@ -50,10 +50,13 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__Default: Host=postgres;Port=5432;Database=farmersample;Username=farmersample;Password=farmersample
+      # Azurite's well-known local development account (public, local only).
+      ConnectionStrings__Blobs: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;
       OTEL_EXPORTER_OTLP_ENDPOINT: http://dashboard:18889
       PublicBaseUrl: ${PUBLIC_BASE_URL:-http://localhost:8080}
     depends_on:
       migrator: { condition: service_completed_successfully }
+      azurite: { condition: service_started }
 
   worker:
     profiles: [app]

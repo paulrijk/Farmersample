@@ -71,5 +71,14 @@ deploy/                      docker-compose, Dockerfiles, Caddy gateway
 
 ## Status
 
-Milestone **M0 (skeleton)** is done plus the start of **M1**: farms, consent, publishing, public producer pages with QR URLs,
-sample requests with staff e-mail. Next in M1: sample batches and gradings, lots, photos with buyer-safe approval.
+**M0 (skeleton)** and **M1 (showcase)** are done:
+
+- Farms, farmer consent (signed form as evidence), publish/unpublish, public producer pages
+- Sample batches per farm visit, versioned hub grading (corrections need a reason)
+- Lots: one product and grade from one or more farms; combined lots get a volume-weighted composite sample that must be graded before publishing
+- Public lot pages with the hub grading marked as verified and volume/harvest marked as producer-supplied
+- QR codes: `/q/CODE` forwards to the lot or farm page; printable A4 label sheets (3 × 8) in the back office
+- Farm photos: originals private; buyers only see a metadata-free WebP copy after a buyer-safe review and with photo consent
+- Sample requests per lot or farm, stored and e-mailed to the team
+
+Next (M2, from Feb 2027): buyer accounts and invites, sealed pouches and stock (Sri Lanka hub → EU stock), paid sample orders via Stripe (VSR Partners SL), offline field app.

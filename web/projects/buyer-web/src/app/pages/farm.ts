@@ -29,6 +29,13 @@ type State = { status: 'loading' } | { status: 'missing' } | { status: 'ok'; far
           @if (f.farmerName) { <p class="producer">Producer: <strong>{{ f.farmerName }}</strong></p> }
           <div class="layout">
             <div>
+              @if (f.photos.length) {
+                <div class="photos">
+                  @for (ph of f.photos; track ph.url) {
+                    <figure><img [src]="ph.url" [width]="ph.width" [height]="ph.height" [alt]="ph.caption ?? f.name" loading="lazy">@if (ph.caption) { <figcaption>{{ ph.caption }}</figcaption> }</figure>
+                  }
+                </div>
+              }
               @if (f.story) { <p class="story">{{ f.story }}</p> }
               <h2>Products</h2>
               <table class="products">
@@ -69,6 +76,9 @@ type State = { status: 'loading' } | { status: 'missing' } | { status: 'ok'; far
     .layout { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1fr) 360px; align-items: start; margin-top: 1.5rem; }
     @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
     .story { font-size: 1.1rem; }
+    .photos { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); margin-bottom: 1.5rem; }
+    figure { margin: 0; } figure img { width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; border-radius: var(--radius-card); display: block; }
+    figcaption { font-size: .85rem; color: var(--color-muted); margin-top: .3rem; }
     .products { width: 100%; border-collapse: collapse; background: var(--color-surface); border-radius: var(--radius-card); overflow: hidden; margin-bottom: 2rem; }
     .products th, .products td { text-align: left; padding: .7rem .9rem; border-bottom: 1px solid var(--color-border); }
     .products th { background: #EFE9D8; font-size: .85rem; }
