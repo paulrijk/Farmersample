@@ -12,15 +12,19 @@ type State = { status: 'loading' } | { status: 'error' } | { status: 'ok'; farms
   selector: 'fs-home',
   imports: [RouterLink, FarmCard],
   template: `
-    <section class="hero on-dark">
+    <section class="hero">
       <div class="container hero-inner">
-        <p class="eyebrow">Sri Lanka · Spices · Direct from Farmers</p>
-        <h1>Discover verified spices, directly from origin.</h1>
-        <p class="lead">Explore Sri Lankan producers, review grades and order samples before you buy.</p>
-        <div class="ctas">
-          <a class="btn btn-accent" routerLink="/" fragment="producers">Explore producers</a>
-          <a class="btn btn-ghost light" routerLink="/" fragment="how-it-works">How verification works</a>
+        <div class="copy">
+          <h1>Discover verified spices, directly from origin.</h1>
+          <p class="lead">Explore Sri Lankan producers, review grades and order samples before you buy.</p>
+          <div class="ctas">
+            <a class="btn btn-accent" routerLink="/" fragment="producers">Explore producers</a>
+            <a class="btn btn-ghost" routerLink="/" fragment="how-it-works">How verification works</a>
+          </div>
         </div>
+        <img class="emblem" src="brand/emblem-1200.webp" srcset="brand/emblem-640.webp 640w, brand/emblem-1200.webp 1200w"
+             sizes="(max-width: 860px) 92vw, 560px" width="1200" height="754" fetchpriority="high"
+             alt="FarmerSample.com — Sri Lanka · Spices · Direct from Farmers">
       </div>
     </section>
 
@@ -52,13 +56,13 @@ type State = { status: 'loading' } | { status: 'error' } | { status: 'ok'; farms
     </section>
   `,
   styles: `
-    .hero { background: radial-gradient(circle at 85% 20%, rgba(200,146,47,.35), transparent 45%), linear-gradient(135deg, #0F3D2E 0%, #14513d 60%, #2E7D7A 100%); color: var(--color-background); padding: clamp(3rem, 8vw, 6rem) 0; }
-    .hero h1 { color: var(--color-background); max-width: 16ch; }
-    .eyebrow { text-transform: uppercase; letter-spacing: .08em; font-size: .8rem; font-weight: 600; color: #E9C989; margin: 0 0 1rem; }
-    .lead { font-size: 1.15rem; max-width: 46ch; opacity: .92; }
+    .hero { background: linear-gradient(180deg, #FBF8F0 0%, var(--color-background) 100%); border-bottom: 1px solid var(--color-border); padding: clamp(2rem, 5vw, 4rem) 0; }
+    .hero-inner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: center; }
+    @media (max-width: 860px) { .hero-inner { grid-template-columns: 1fr; } .emblem { order: -1; max-width: 520px; margin-inline: auto; } }
+    .hero h1 { max-width: 16ch; }
+    .lead { font-size: 1.15rem; max-width: 46ch; color: var(--color-text); }
     .ctas { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.75rem; }
-    .btn-ghost.light { color: var(--color-background); border-color: rgba(247,243,232,.7); }
-    .btn-ghost.light:hover { background: rgba(247,243,232,.1); }
+    .emblem { width: 100%; height: auto; display: block; }
     .section { padding-top: 3.5rem; }
     .section-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
     .steps { list-style: none; padding: 0; margin: 1.5rem 0 0; display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }

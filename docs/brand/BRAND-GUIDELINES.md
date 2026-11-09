@@ -110,3 +110,13 @@ Prefer authentic photographs of Sri Lankan producers, pepper vines, cinnamon, ca
 ---
 
 *This is a visual identity proposal, not a certification or legal assurance. The name, logo, operational claims and launch assumptions remain subject to validation.*
+
+## Logo files in this repository
+
+| File | Use |
+|------|-----|
+| `docs/brand/logo/farmersample-emblem-original.png` | Original illustrated emblem as supplied (1536×1024, background is a baked-in checkerboard, not transparent) |
+| `docs/brand/logo/farmersample-emblem-cutout.png` | Same emblem with the background removed. Use on **light** backgrounds only (cream/white); edges look rough on dark green |
+| `web/projects/buyer-web/public/brand/emblem-*.webp` | Web versions (640 and 1200 px) used in the homepage hero |
+
+Still needed (see "Next design deliverables"): a vector (SVG) horizontal wordmark and a square icon for navigation, favicon and small labels, plus a true transparent version of the emblem for dark backgrounds.
