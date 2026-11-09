@@ -15,7 +15,7 @@ Changes in v0.2: grading moved to the per-farm sample batch and lot samples made
 | D3 | Local first | The full stack runs on a laptop (Windows, macOS incl. Apple Silicon, Linux) with Docker Compose. **Demo mode needs only Docker.** Every cloud dependency has a local stand-in (Azurite, Mailpit; Stripe test mode is optional and off by default). |
 | D4 | Cloud later | Azure (Container Apps, Database for PostgreSQL Flexible Server, Blob Storage, Key Vault) in an EU region (West Europe / Spain Central). A small `test` environment may come early for the EDB demo (§10.7). |
 | D5 | Auctions | **Not rebuilt.** Phase 2 auctions run on the existing **WeAuction platform** via an integration adapter. |
-| D6 | Money | FarmerSample **never holds third-party money**. P1: the EU entity sells samples/boxes via Stripe; the exporter of record invoices goods directly to the buyer; FarmerSample invoices its commission. P2 escrow only through a **regulated provider**. |
+| D6 | Money | FarmerSample **never holds third-party money**. P1: VSR Partners SL sells samples/boxes via Stripe; the exporter of record invoices goods directly to the buyer; FarmerSample invoices its commission. P2 escrow only through a **regulated provider**. |
 | D7 | Anti-bypass by design | Farmer contact details, legal names of plantations (unless the farmer consents to show them) and exact GPS are **never** exposed to buyers — not in JSON, QR pages, images, PDFs or exports. Conscious exception: in P1 the buyer learns the **exporter of record** (Saj's company or a licensed exporter), who is our partner; farmer identities stay off exporter paperwork shown to buyers. |
 | D8 | Field data capture | **M1:** mobile-friendly back-office intake form + import of the EDB plantation spreadsheet. **M2:** true offline PWA for farm visits. |
 
@@ -51,7 +51,7 @@ Farmers do not log in in P0–P1; staff manage their profiles with the farmer's 
 - **Trust and auditability** of gradings, seals, prices and deals.
 - **Bypass protection** (D7) is business-critical.
 - **Low bandwidth** at farms and on buyers' phones.
-- **Two legal entities** (Sri Lankan: sourcing, hub, export; European: sample stock, sample sales, buyer contracts, commission, later escrow contracting). **Every money record names its legal entity.**
+- **Two legal entities**: **Saj Company**, the Sri Lankan branch (sourcing, hub, export), and **VSR Partners SL**, the European seller in Spain (sample stock, sample sales, buyer contracts, commission, later escrow contracting). Both are seeded as `LegalEntity` reference data. **Every money record names its legal entity.**
 - **Privacy**: GDPR applies to **all** personal data processed by the EU entity — buyers *and* farmers (names, photos, stories, farmer-share figures). Sri Lanka PDPA (No. 9 of 2022) applies to processing in Sri Lanka. Minimise farmer data.
 - **Cost** well within the EUR 24k/year platform budget.
 
@@ -294,7 +294,7 @@ sequenceDiagram
 
 ### 7.4 Offer → deal (M3)
 
-Buyer makes an offer → staff and buyer counter in the offer thread → accept (invariants §6.3) → Deal with exporter of record → exporter invoices goods **directly to the buyer** (contract/invoice PDFs uploaded to the deal) → EU entity issues a **CommissionInvoice**; the buyer's available **sample credit is redeemed as a line on that invoice** (same entity that collected it, so no cross-entity or cross-VAT settlement). Commission 5 % in P1, configurable per deal.
+Buyer makes an offer → staff and buyer counter in the offer thread → accept (invariants §6.3) → Deal with exporter of record → exporter invoices goods **directly to the buyer** (contract/invoice PDFs uploaded to the deal) → VSR Partners SL issues a **CommissionInvoice**; the buyer's available **sample credit is redeemed as a line on that invoice** (same entity that collected it, so no cross-entity or cross-VAT settlement). Commission 5 % in P1, configurable per deal.
 
 ### 7.5 QR scan
 
@@ -465,10 +465,10 @@ Bicep + GitHub Actions; `main` → `test`, tags → `prod`.
 | **M4 Hardening** | before public launch | Azure prod, backups/restore test, privacy documentation, security review |
 
 ## 16. Open questions (blocking where marked)
-1. **(blocks M3)** Exporter of record per deal: Saj's company or a licensed exporter?
-2. **(blocks Stripe in M2)** Which EU entity (Netherlands or Spain) sells samples and invoices commission? Stripe account, VAT registration, OSS.
+1. **(blocks M3)** Is Saj Company the exporter of record for every deal (EDB registration and export licence in place), or is a licensed exporter needed for some products?
+2. **Decided:** VSR Partners SL (Spain) sells samples and invoices commission. Still to do before Stripe in M2: Stripe account in its name, Spanish VAT and OSS registration.
 3. Import rules for commercial food samples into the EU; VAT on samples.
 4. **(blocks P2)** Escrow provider and the EU entity's role.
-5. **(before M1 go-live with real farmers)** Controller roles of both entities, PDPA cross-border basis, consent text in Sinhala/Tamil.
+5. **(before M1 go-live with real farmers)** Controller roles of VSR Partners SL and Saj Company, PDPA cross-border basis, consent text in Sinhala/Tamil.
 6. WeAuction API: lot import and result callback (check with Enigmatry).
 7. Whether to show plantation legal names publicly when farmers consent (bypass risk vs. trust).
