@@ -4,13 +4,14 @@ import { RouterLink } from '@angular/router';
 import { catchError, map, of, startWith } from 'rxjs';
 import { FarmApi } from '../farm-api';
 import { FarmCard } from '../components/farm-card';
-import { PublicFarm } from '../../../../../shared/api';
+import { LotCard } from '../components/lot-card';
+import { PublicFarm, PublicLot } from '../../../../../shared/api';
 
 type State = { status: 'loading' } | { status: 'error' } | { status: 'ok'; farms: PublicFarm[] };
 
 @Component({
   selector: 'fs-home',
-  imports: [RouterLink, FarmCard],
+  imports: [RouterLink, FarmCard, LotCard],
   template: `
     <section class="hero">
       <div class="container hero-inner">
@@ -18,7 +19,7 @@ type State = { status: 'loading' } | { status: 'error' } | { status: 'ok'; farms
           <h1>Discover verified spices, directly from origin.</h1>
           <p class="lead">Explore Sri Lankan producers, review grades and order samples before you buy.</p>
           <div class="ctas">
-            <a class="btn btn-accent" routerLink="/" fragment="producers">Explore producers</a>
+            <a class="btn btn-accent" routerLink="/" fragment="lots">Explore lots</a>
             <a class="btn btn-ghost" routerLink="/" fragment="how-it-works">How verification works</a>
           </div>
         </div>
@@ -36,6 +37,18 @@ type State = { status: 'loading' } | { status: 'error' } | { status: 'ok'; farms
         <li class="card"><span class="num">3</span><h3>Order a sample</h3><p>Review the producer and grade, then request a sealed, numbered sample from that lot.</p></li>
         <li class="card"><span class="num">4</span><h3>Make an offer</h3><p>Send an offer through FarmerSample. We handle contracts, export and shipping with you.</p></li>
       </ol>
+    </section>
+
+    <section id="lots" class="container section">
+      <div class="section-head">
+        <h2>Lots on offer</h2>
+        <p class="muted">Graded at our hub in Sri Lanka. Order a sealed sample before you make an offer.</p>
+      </div>
+      @if (lots().length) {
+        <div class="grid">
+          @for (l of lots(); track l.code) { <fs-lot-card [lot]="l" /> }
+        </div>
+      } @else { <p class="muted">The first lots are being graded. Request a sample and we will tell you when they are ready.</p> }
     </section>
 
     <section id="producers" class="container section">
@@ -79,5 +92,6 @@ export class HomePage {
       catchError(() => of({ status: 'error' } as State)),
       startWith({ status: 'loading' } as State)),
     { requireSync: true });
+  protected lots = toSignal(this.api.lots().pipe(catchError(() => of([] as PublicLot[]))), { initialValue: [] as PublicLot[] });
   protected farms = () => { const s = this.state(); return s.status === 'ok' ? s.farms : []; };
 }

@@ -14,6 +14,10 @@ public static class CoreServiceCollectionExtensions
         services.AddDbContext<AppDbContext>(o => o.UseNpgsql(connectionString));
         services.AddScoped<IPublicFarmReader, PublicFarmReader>();
         services.AddScoped<IFarmService, FarmService>();
+        services.AddScoped<IQualityService, QualityService>();
+        services.AddScoped<ILotService, LotService>();
+        services.AddScoped<IPublicLotReader, PublicLotReader>();
+        services.AddSingleton(TimeProvider.System);
         services.AddScoped<ISampleRequestService, SampleRequestService>();
         return services;
     }

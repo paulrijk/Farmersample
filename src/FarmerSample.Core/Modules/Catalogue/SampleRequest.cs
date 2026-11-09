@@ -5,6 +5,7 @@ public class SampleRequest
 {
     public Guid Id { get; set; } = Guid.CreateVersion7();
     public string? FarmCode { get; set; }
+    public string? LotCode { get; set; }
     public required string CompanyName { get; set; }
     public required string ContactName { get; set; }
     public required string Email { get; set; }

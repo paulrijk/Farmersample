@@ -3,7 +3,8 @@ using FarmerSample.Worker;
 using OpenTelemetry;
 using OpenTelemetry.Resources;
 
-var builder = Host.CreateApplicationBuilder(args);
+// Content root = the build output, so settings are found whichever folder the command is started from.
+var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { Args = args, ContentRootPath = AppContext.BaseDirectory });
 
 builder.Services.AddFarmerSampleCore(builder.Configuration.GetConnectionString("Default")
     ?? throw new InvalidOperationException("ConnectionStrings:Default is not configured."));

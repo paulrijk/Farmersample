@@ -35,6 +35,7 @@ import { COUNTRIES } from '../../../../../shared/api';
 export class SampleRequestForm {
   private api = inject(FarmApi);
   farmCode = input<string | null>(null);
+  lotCode = input<string | null>(null);
   protected countries = COUNTRIES;
   protected model = { companyName: '', contactName: '', email: '', countryCode: '', message: '', website: '' };
   protected busy = signal(false);
@@ -44,7 +45,7 @@ export class SampleRequestForm {
   submit() {
     this.busy.set(true);
     this.error.set(null);
-    this.api.requestSample({ ...this.model, farmCode: this.farmCode(), message: this.model.message || null, website: this.model.website || null })
+    this.api.requestSample({ ...this.model, farmCode: this.farmCode(), lotCode: this.lotCode(), message: this.model.message || null, website: this.model.website || null })
       .subscribe({
         next: () => { this.sent.set(true); this.busy.set(false); },
         error: e => {

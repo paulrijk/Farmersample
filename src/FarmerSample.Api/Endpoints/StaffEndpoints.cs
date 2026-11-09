@@ -4,6 +4,7 @@ using FarmerSample.Core.Modules.Catalogue;
 using FarmerSample.Core.Modules.SupplyQuality;
 using FarmerSample.Core.Modules.SupplyQuality.Contracts;
 using FarmerSample.Core.Persistence;
+using FarmerSample.Core.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 
 namespace FarmerSample.Api.Endpoints;
@@ -15,7 +16,12 @@ public static class StaffEndpoints
         var staff = app.MapGroup("/api/v1/staff")
             .RequireAuthorization(Policies.Staff)
             .AddEndpointFilter<AntiforgeryFilter>()
+            .AddEndpointFilter<DomainExceptionFilter>()
             .WithTags("Staff");
+
+        // Base URL that QR codes and printed labels point to (configurable for tunnels and test environments).
+        staff.MapGet("/settings", (IConfiguration config) =>
+            new { publicBaseUrl = (config["PublicBaseUrl"] ?? "http://localhost:8080").TrimEnd('/') });
 
         staff.MapGet("/legal-entities", async (AppDbContext db, CancellationToken ct) =>
             await db.LegalEntities.AsNoTracking().OrderBy(x => x.Name)
@@ -51,6 +57,19 @@ public static class StaffEndpoints
 
         staff.MapPost("/farms/{id:guid}/unpublish", async (Guid id, IFarmService farms, CancellationToken ct) =>
             await farms.UnpublishAsync(id, ct) ? Results.NoContent() : Results.NotFound());
+
+        // ---- sample batches and grading ----
+        staff.MapGet("/sample-batches", (IQualityService q, CancellationToken ct) => q.ListBatchesAsync(ct));
+        staff.MapPost("/sample-batches", (CreateSampleBatchRequest r, IQualityService q, CancellationToken ct) => q.CreateBatchAsync(r, ct));
+        staff.MapPost("/sample-batches/{id:guid}/gradings", (Guid id, GradingInput r, IQualityService q, CancellationToken ct) => q.GradeBatchAsync(id, r, ct));
+
+        // ---- lots ----
+        staff.MapGet("/lots", (ILotService lots, CancellationToken ct) => lots.ListAsync(ct));
+        staff.MapGet("/lots/{id:guid}", (Guid id, ILotService lots, CancellationToken ct) => lots.GetAsync(id, ct));
+        staff.MapPost("/lots", (CreateLotRequest r, ILotService lots, CancellationToken ct) => lots.CreateAsync(r, ct));
+        staff.MapPost("/lots/{id:guid}/composite-gradings", (Guid id, GradingInput r, ILotService lots, CancellationToken ct) => lots.GradeCompositeAsync(id, r, ct));
+        staff.MapPost("/lots/{id:guid}/publish", (Guid id, ILotService lots, CancellationToken ct) => lots.PublishAsync(id, ct));
+        staff.MapPost("/lots/{id:guid}/withdraw", (Guid id, ILotService lots, CancellationToken ct) => lots.WithdrawAsync(id, ct));
 
         staff.MapGet("/sample-requests", (ISampleRequestService s, CancellationToken ct) => s.ListAsync(ct));
     }

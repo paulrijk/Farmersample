@@ -57,30 +57,6 @@ namespace FarmerSample.Core.Persistence.Migrations
                     b.ToTable("legal_entities", "admin");
                 });
 
-            modelBuilder.Entity("FarmerSample.Core.Modules.Admin.Region", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("CountryCode")
-                        .IsRequired()
-                        .HasMaxLength(2)
-                        .HasColumnType("character varying(2)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CountryCode", "Name")
-                        .IsUnique();
-
-                    b.ToTable("regions", "admin");
-                });
-
             modelBuilder.Entity("FarmerSample.Core.Modules.Catalogue.SampleRequest", b =>
                 {
                     b.Property<Guid>("Id")
@@ -111,6 +87,9 @@ namespace FarmerSample.Core.Persistence.Migrations
 
                     b.Property<DateTimeOffset?>("HandledAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LotCode")
+                        .HasColumnType("text");
 
                     b.Property<string>("Message")
                         .HasColumnType("text");
@@ -381,6 +360,247 @@ namespace FarmerSample.Core.Persistence.Migrations
                     b.ToTable("farmer_consents", "supply");
                 });
 
+            modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.Grading", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Cleanliness")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CorrectionReason")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("DensityGramsPerLitre")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Grade")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTimeOffset>("GradedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("LotSampleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("MoisturePercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("numeric(5,2)");
+
+                    b.Property<string>("Operator")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("SampleBatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("SupersedesId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LotSampleId");
+
+                    b.HasIndex("SampleBatchId");
+
+                    b.HasIndex("SupersedesId")
+                        .IsUnique()
+                        .HasFilter("\"SupersedesId\" IS NOT NULL");
+
+                    b.ToTable("gradings", "supply", t =>
+                        {
+                            t.HasCheckConstraint("ck_grading_one_owner", "(\"SampleBatchId\" IS NULL) <> (\"LotSampleId\" IS NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.Lot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ClosedReason")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<string>("Grade")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("Incoterm")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<long>("PriceMaxPerKgMinor")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("PriceMinPerKgMinor")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Product")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<string>("PublicCode")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)");
+
+                    b.Property<DateTimeOffset?>("PublishedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateOnly>("ValidUntil")
+                        .HasColumnType("date");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PublicCode")
+                        .IsUnique();
+
+                    b.ToTable("lots", "supply");
+                });
+
+            modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.LotContribution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal>("CompositeSharePercent")
+                        .HasPrecision(5, 1)
+                        .HasColumnType("numeric(5,1)");
+
+                    b.Property<Guid>("LotId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SampleBatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("VolumeKg")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LotId");
+
+                    b.HasIndex("SampleBatchId")
+                        .IsUnique()
+                        .HasFilter("\"Active\"");
+
+                    b.ToTable("lot_contributions", "supply");
+                });
+
+            modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.LotSample", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("LotId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ShareOverrideReason")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LotId")
+                        .IsUnique();
+
+                    b.ToTable("lot_samples", "supply");
+                });
+
+            modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.SampleBatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("character varying(12)");
+
+                    b.Property<string>("CollectedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly>("CollectedOn")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("FarmId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Product")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("WeightGrams")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("FarmId");
+
+                    b.ToTable("sample_batches", "supply");
+                });
+
             modelBuilder.Entity("FarmerSample.Core.Outbox.OutboxMessage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -413,6 +633,30 @@ namespace FarmerSample.Core.Persistence.Migrations
                         .HasFilter("\"ProcessedAt\" IS NULL");
 
                     b.ToTable("outbox_messages", "infra");
+                });
+
+            modelBuilder.Entity("FarmerSample.Core.ReferenceData.Region", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CountryCode", "Name")
+                        .IsUnique();
+
+                    b.ToTable("regions", "admin");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -562,7 +806,7 @@ namespace FarmerSample.Core.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("FarmerSample.Core.Modules.Admin.Region", null)
+                    b.HasOne("FarmerSample.Core.ReferenceData.Region", null)
                         .WithMany()
                         .HasForeignKey("RegionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -587,6 +831,54 @@ namespace FarmerSample.Core.Persistence.Migrations
                         .HasForeignKey("FarmerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.Grading", b =>
+                {
+                    b.HasOne("FarmerSample.Core.Modules.SupplyQuality.LotSample", null)
+                        .WithMany("Gradings")
+                        .HasForeignKey("LotSampleId");
+
+                    b.HasOne("FarmerSample.Core.Modules.SupplyQuality.SampleBatch", null)
+                        .WithMany("Gradings")
+                        .HasForeignKey("SampleBatchId");
+                });
+
+            modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.LotContribution", b =>
+                {
+                    b.HasOne("FarmerSample.Core.Modules.SupplyQuality.Lot", null)
+                        .WithMany("Contributions")
+                        .HasForeignKey("LotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FarmerSample.Core.Modules.SupplyQuality.SampleBatch", "SampleBatch")
+                        .WithMany()
+                        .HasForeignKey("SampleBatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SampleBatch");
+                });
+
+            modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.LotSample", b =>
+                {
+                    b.HasOne("FarmerSample.Core.Modules.SupplyQuality.Lot", null)
+                        .WithOne("Sample")
+                        .HasForeignKey("FarmerSample.Core.Modules.SupplyQuality.LotSample", "LotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.SampleBatch", b =>
+                {
+                    b.HasOne("FarmerSample.Core.Modules.SupplyQuality.Farm", "Farm")
+                        .WithMany()
+                        .HasForeignKey("FarmId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Farm");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -652,6 +944,23 @@ namespace FarmerSample.Core.Persistence.Migrations
                     b.Navigation("Consents");
 
                     b.Navigation("Farms");
+                });
+
+            modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.Lot", b =>
+                {
+                    b.Navigation("Contributions");
+
+                    b.Navigation("Sample");
+                });
+
+            modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.LotSample", b =>
+                {
+                    b.Navigation("Gradings");
+                });
+
+            modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.SampleBatch", b =>
+                {
+                    b.Navigation("Gradings");
                 });
 #pragma warning restore 612, 618
         }

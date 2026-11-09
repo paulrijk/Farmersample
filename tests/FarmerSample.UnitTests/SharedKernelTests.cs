@@ -10,7 +10,7 @@ public class PublicCodeTests
         for (var i = 0; i < 1000; i++)
         {
             var code = PublicCode.New(PublicCode.LotPrefix);
-            Assert.Matches("^LT-[0-9A-Z]{4}-[0-9A-Z]{3}[0-9A-Z*~$=]$", code);
+            Assert.Matches("^LT-[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}$", code);
             Assert.True(PublicCode.TryNormalize(code, out var normalized));
             Assert.Equal(code, normalized);
         }
@@ -33,12 +33,34 @@ public class PublicCodeTests
     }
 
     [Fact]
-    public void A_single_typo_is_rejected_by_the_check_character()
+    public void Every_single_typo_is_rejected_by_the_check_character()
     {
-        var code = PublicCode.New("FM");
-        var chars = code.ToCharArray();
-        chars[3] = chars[3] == 'A' ? 'B' : 'A';
-        Assert.False(PublicCode.TryNormalize(new string(chars), out _));
+        const string alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+        for (var n = 0; n < 50; n++)
+        {
+            var code = PublicCode.New("FM");
+            foreach (var pos in new[] { 3, 4, 5, 6, 8, 9, 10, 11 })
+                foreach (var c in alphabet.Where(c => c != code[pos]))
+                {
+                    var chars = code.ToCharArray(); chars[pos] = c;
+                    Assert.False(PublicCode.TryNormalize(new string(chars), out _), $"{new string(chars)} accepted");
+                }
+        }
+    }
+
+    [Fact]
+    public void Swapping_two_neighbouring_characters_is_rejected_except_0_and_Z()
+    {
+        for (var n = 0; n < 200; n++)
+        {
+            var code = PublicCode.New("LT").Replace("-", "");
+            for (var i = 2; i < 8; i++)
+            {
+                if (code[i] == code[i + 1] || (code[i] is '0' or 'Z' && code[i + 1] is '0' or 'Z')) continue;   // Luhn's one blind spot
+                var chars = code.ToCharArray(); (chars[i], chars[i + 1]) = (chars[i + 1], chars[i]);
+                Assert.False(PublicCode.TryNormalize(new string(chars), out _), $"{new string(chars)} accepted");
+            }
+        }
     }
 
     [Theory]

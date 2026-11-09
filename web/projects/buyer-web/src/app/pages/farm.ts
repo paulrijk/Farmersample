@@ -5,13 +5,14 @@ import { RouterLink } from '@angular/router';
 import { catchError, map, of, startWith, switchMap, tap } from 'rxjs';
 import { FarmApi } from '../farm-api';
 import { SampleRequestForm } from '../components/sample-request-form';
-import { PublicFarm, monthNames } from '../../../../../shared/api';
+import { LotCard } from '../components/lot-card';
+import { PublicFarm, PublicLot, monthNames } from '../../../../../shared/api';
 
 type State = { status: 'loading' } | { status: 'missing' } | { status: 'ok'; farm: PublicFarm };
 
 @Component({
   selector: 'fs-farm',
-  imports: [RouterLink, SampleRequestForm],
+  imports: [RouterLink, SampleRequestForm, LotCard],
   template: `
     <div class="container page">
       @switch (state().status) {
@@ -38,6 +39,10 @@ type State = { status: 'loading' } | { status: 'missing' } | { status: 'ok'; far
                   }
                 </tbody>
               </table>
+              @if (farmLots().length) {
+                <h2>Lots with this producer</h2>
+                <div class="lots">@for (l of farmLots(); track l.code) { <fs-lot-card [lot]="l" /> }</div>
+              }
               <h2>Details</h2>
               <dl class="facts">
                 <dt>Region</dt><dd>{{ f.region }}, Sri Lanka</dd>
@@ -71,6 +76,7 @@ type State = { status: 'loading' } | { status: 'missing' } | { status: 'ok'; far
     .facts dt { font-weight: 600; } .facts dd { margin: 0; }
     .note { font-size: .85rem; margin-top: 1.5rem; }
     .small { font-size: .9rem; }
+    .lots { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); margin-bottom: 2rem; }
     aside { position: sticky; top: 80px; }
   `,
 })
@@ -88,5 +94,7 @@ export class FarmPage {
         startWith({ status: 'loading' } as State))),
       tap(s => this.title.setTitle(s.status === 'ok' ? `${s.farm.name} — FarmerSample.com` : 'FarmerSample.com'))),
     { initialValue: { status: 'loading' } as State });
+  private allLots = toSignal(this.api.lots().pipe(catchError(() => of([] as PublicLot[]))), { initialValue: [] as PublicLot[] });
+  protected farmLots = computed(() => this.allLots().filter(l => l.farms.some(f => f.code === this.farm()?.code)));
   protected farm = computed(() => { const s = this.state(); return s.status === 'ok' ? s.farm : null; });
 }

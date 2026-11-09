@@ -19,6 +19,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<Farmer> Farmers => Set<Farmer>();
     public DbSet<Farm> Farms => Set<Farm>();
     public DbSet<FarmerConsent> FarmerConsents => Set<FarmerConsent>();
+    public DbSet<SampleBatch> SampleBatches => Set<SampleBatch>();
+    public DbSet<Grading> Gradings => Set<Grading>();
+    public DbSet<Lot> Lots => Set<Lot>();
+    public DbSet<LotContribution> LotContributions => Set<LotContribution>();
     public DbSet<SampleRequest> SampleRequests => Set<SampleRequest>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
@@ -78,6 +82,60 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
             e.ToTable("farmer_consents", "supply");
             e.Property(x => x.Purposes).HasConversion<int>();
             e.Property(x => x.Evidence).HasConversion<string>().HasMaxLength(30);
+        });
+
+        b.Entity<SampleBatch>(e =>
+        {
+            e.ToTable("sample_batches", "supply");
+            e.HasIndex(x => x.Code).IsUnique();
+            e.Property(x => x.Code).HasMaxLength(12);
+            e.Property(x => x.Product).HasMaxLength(60);
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+            e.HasOne(x => x.Farm).WithMany().HasForeignKey(x => x.FarmId);
+            e.HasMany(x => x.Gradings).WithOne().HasForeignKey(x => x.SampleBatchId);
+            e.Ignore(x => x.CurrentGrading);
+        });
+        b.Entity<Grading>(e =>
+        {
+            e.ToTable("gradings", "supply");
+            e.Property(x => x.MoisturePercent).HasPrecision(5, 2);
+            e.Property(x => x.Grade).HasMaxLength(40);
+            // A grading belongs to exactly one sample: a farm batch OR a lot's composite sample.
+            e.ToTable(t => t.HasCheckConstraint("ck_grading_one_owner", "(\"SampleBatchId\" IS NULL) <> (\"LotSampleId\" IS NULL)"));
+            e.HasIndex(x => x.SupersedesId).IsUnique().HasFilter("\"SupersedesId\" IS NOT NULL");   // a version is superseded at most once
+        });
+        b.Entity<Lot>(e =>
+        {
+            e.ToTable("lots", "supply");
+            e.HasIndex(x => x.PublicCode).IsUnique();
+            e.Property(x => x.PublicCode).HasMaxLength(12);
+            e.Property(x => x.Product).HasMaxLength(60);
+            e.Property(x => x.Grade).HasMaxLength(40);
+            e.Property(x => x.CountryCode).HasMaxLength(2);
+            e.Property(x => x.Currency).HasMaxLength(3);
+            e.Property(x => x.Incoterm).HasMaxLength(40);
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+            e.Property(x => x.ClosedReason).HasConversion<string>().HasMaxLength(20);
+            e.HasMany(x => x.Contributions).WithOne().HasForeignKey(x => x.LotId);
+            e.HasOne(x => x.Sample).WithOne().HasForeignKey<LotSample>(x => x.LotId);
+            e.Ignore(x => x.CommittedVolumeKg);
+            e.Ignore(x => x.IsBundled);
+            e.Property<uint>("xmin").IsRowVersion();
+        });
+        b.Entity<LotContribution>(e =>
+        {
+            e.ToTable("lot_contributions", "supply");
+            e.Property(x => x.CompositeSharePercent).HasPrecision(5, 1);
+            e.HasOne(x => x.SampleBatch).WithMany().HasForeignKey(x => x.SampleBatchId);
+            // A sample batch backs at most one ACTIVE lot (enforced by the database, not only in code).
+            e.HasIndex(x => x.SampleBatchId).IsUnique().HasFilter("\"Active\"");
+        });
+        b.Entity<LotSample>(e =>
+        {
+            e.ToTable("lot_samples", "supply");
+            e.Property(x => x.Kind).HasConversion<string>().HasMaxLength(20);
+            e.HasMany(x => x.Gradings).WithOne().HasForeignKey(x => x.LotSampleId);
+            e.Ignore(x => x.CurrentGrading);
         });
 
         // Catalogue

@@ -14,6 +14,7 @@ import { StaffApi, publicSiteUrl } from '../staff-api';
         <article class="card">
           <div class="top"><strong>{{ r.companyName }}</strong> <span class="chip chip-teal">{{ r.countryCode }}</span><span class="muted when">{{ r.createdAt | date: 'd MMM y, HH:mm' }}</span></div>
           <p>{{ r.contactName }} · <a [href]="'mailto:' + r.email">{{ r.email }}</a></p>
+          @if (r.lotCode) { <p>Lot: <a [href]="site + '/lots/' + r.lotCode" target="_blank" rel="noopener"><code>{{ r.lotCode }}</code></a></p> }
           @if (r.farmCode) { <p>Farm: <a [href]="site + '/farms/' + r.farmCode" target="_blank" rel="noopener"><code>{{ r.farmCode }}</code></a></p> }
           @if (r.message) { <p class="msg">{{ r.message }}</p> }
         </article>

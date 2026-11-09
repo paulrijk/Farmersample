@@ -13,6 +13,9 @@ import { Auth } from './auth';
         <nav>
           <a routerLink="/farms" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Farms</a>
           <a routerLink="/farms/new" routerLinkActive="active">New farm</a>
+          <a routerLink="/sample-batches" routerLinkActive="active">Sample batches</a>
+          <a routerLink="/lots" routerLinkActive="active">Lots</a>
+          <a routerLink="/labels" routerLinkActive="active">QR labels</a>
           <a routerLink="/sample-requests" routerLinkActive="active">Sample requests</a>
           <a routerLink="/mfa" routerLinkActive="active">Two-factor sign-in</a>
         </nav>
@@ -42,6 +45,7 @@ import { Auth } from './auth';
     .me { margin-top: auto; font-size: .85rem; } .me span { opacity: .7; }
     .btn-ghost.light { color: var(--color-background); border-color: rgba(247,243,232,.5); width: 100%; }
     main { padding: 2rem clamp(1rem, 3vw, 2.5rem); min-width: 0; }
+    @media print { .side, .banner { display: none !important; } .layout { display: block; } main { padding: 0; } }
     .banner { background: #F6EAD3; border: 1px solid #E8D3A6; padding: .75rem 1rem; border-radius: var(--radius-button); margin: 0 0 1.5rem; }
   `,
 })

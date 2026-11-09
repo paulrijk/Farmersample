@@ -19,9 +19,11 @@ public sealed class Seeder(AppDbContext db, UserManager<AppUser> users, RoleMana
         await SeedRolesAsync();
         await SeedLegalEntitiesAsync();
         await SeedRegionsAsync();
+        await RepairPublicCodesAsync();
         if (!demoData) return;
         await SeedDemoUsersAsync();
         await SeedDemoFarmsAsync();
+        await SeedDemoLotsAsync();
     }
 
     private async Task SeedRolesAsync()
@@ -37,6 +39,18 @@ public sealed class Seeder(AppDbContext db, UserManager<AppUser> users, RoleMana
             db.LegalEntities.Add(new LegalEntity { Code = "VSR-ES", Name = "VSR Partners SL", CountryCode = "ES", Role = LegalEntityRole.EuropeanSeller });
         if (!await db.LegalEntities.AnyAsync(x => x.Code == "SAJ-LK"))
             db.LegalEntities.Add(new LegalEntity { Code = "SAJ-LK", Name = "Saj Company", CountryCode = "LK", Role = LegalEntityRole.SourcingAndExport });
+        await db.SaveChangesAsync();
+    }
+
+    /// <summary>Codes created before Nov 2026 used a check character that could be a symbol ($, ~ …). Recompute them once.</summary>
+    private async Task RepairPublicCodesAsync()
+    {
+        foreach (var farm in await db.Farms.ToListAsync())
+            if (!PublicCode.TryNormalize(farm.PublicCode, out _)) farm.PublicCode = PublicCode.WithCurrentCheck(farm.PublicCode);
+        foreach (var lot in await db.Lots.ToListAsync())
+            if (!PublicCode.TryNormalize(lot.PublicCode, out _)) lot.PublicCode = PublicCode.WithCurrentCheck(lot.PublicCode);
+        foreach (var batch in await db.SampleBatches.ToListAsync())
+            if (!PublicCode.TryNormalize(batch.Code, out _)) batch.Code = PublicCode.WithCurrentCheck(batch.Code);
         await db.SaveChangesAsync();
     }
 
@@ -109,6 +123,55 @@ public sealed class Seeder(AppDbContext db, UserManager<AppUser> users, RoleMana
                 "Smallholding waiting for consent before going public.", FarmStatus.NeedsReview, ConsentPurpose.None,
                 new FarmProduct { Product = "Ceylon cinnamon", Grade = "Alba", HarvestMonths = [3, 4, 9, 10] }));
         db.Farms.Local.First(f => f.Name == "Hillside Pepper Garden").Certifications.Add(new Certification { Scheme = "EU organic" });
+        await db.SaveChangesAsync();
+    }
+
+    /// <summary>FICTIONAL batches, gradings and two lots: a bundled pepper lot (two farms) and a single-farm cinnamon lot.</summary>
+    private async Task SeedDemoLotsAsync()
+    {
+        if (await db.Lots.AnyAsync() || await db.SampleBatches.AnyAsync()) return;
+        var hillside = await db.Farms.FirstOrDefaultAsync(f => f.Name == "Hillside Pepper Garden");
+        var riverside = await db.Farms.FirstOrDefaultAsync(f => f.Name == "Riverside Spice Estate");
+        if (hillside is null || riverside is null) return;
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        SampleBatch Batch(Farm farm, string product, string grade, decimal moisture, int? density) => new()
+        {
+            Code = PublicCode.New("SB"), FarmId = farm.Id, Product = product, WeightGrams = 1500, CollectedOn = today.AddDays(-10),
+            CollectedBy = "Demo Field Agent", Status = SampleBatchStatus.Graded,
+            Gradings = [new Grading { Grade = grade, MoisturePercent = moisture, DensityGramsPerLitre = density, Cleanliness = "Clean", Operator = "Demo Quality Controller" }],
+        };
+
+        var pepperA = Batch(hillside, "Black pepper", "550 g/L", 11.5m, 565);
+        var pepperB = Batch(riverside, "Black pepper", "550 g/L", 12.0m, 558);
+        var cinnamon = Batch(riverside, "Ceylon cinnamon", "C5", 13.0m, null);
+        db.SampleBatches.AddRange(pepperA, pepperB, cinnamon);
+
+        var shares = CompositeShares.VolumeWeighted([1800, 4200]);
+        db.Lots.Add(new Lot
+        {
+            PublicCode = PublicCode.New(PublicCode.LotPrefix), Product = "Black pepper", Grade = "550 g/L", CountryCode = "LK",
+            Status = LotStatus.Published, PublishedAt = DateTimeOffset.UtcNow,
+            PriceMinPerKgMinor = 620, PriceMaxPerKgMinor = 710, Currency = "EUR", Incoterm = "FOB Colombo", ValidUntil = today.AddDays(45),
+            Contributions =
+            [
+                new LotContribution { SampleBatchId = pepperA.Id, VolumeKg = 1800, CompositeSharePercent = shares[0] },
+                new LotContribution { SampleBatchId = pepperB.Id, VolumeKg = 4200, CompositeSharePercent = shares[1] },
+            ],
+            Sample = new LotSample
+            {
+                Kind = LotSampleKind.Composite,
+                Gradings = [new Grading { Grade = "550 g/L", MoisturePercent = 11.8m, DensityGramsPerLitre = 560, Cleanliness = "Clean", Operator = "Demo Quality Controller" }],
+            },
+        });
+        db.Lots.Add(new Lot
+        {
+            PublicCode = PublicCode.New(PublicCode.LotPrefix), Product = "Ceylon cinnamon", Grade = "C5", CountryCode = "LK",
+            Status = LotStatus.Published, PublishedAt = DateTimeOffset.UtcNow,
+            PriceMinPerKgMinor = 1450, PriceMaxPerKgMinor = 1650, Currency = "EUR", Incoterm = "FOB Colombo", ValidUntil = today.AddDays(60),
+            Contributions = [new LotContribution { SampleBatchId = cinnamon.Id, VolumeKg = 600, CompositeSharePercent = 100 }],
+            Sample = new LotSample { Kind = LotSampleKind.SingleFarm },
+        });
         await db.SaveChangesAsync();
     }
 }

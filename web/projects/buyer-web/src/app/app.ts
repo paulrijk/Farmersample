@@ -15,6 +15,7 @@ import { RouterLink, RouterOutlet } from '@angular/router';
           </picture>
         </a>
         <nav aria-label="Main">
+          <a routerLink="/" fragment="lots">Lots</a>
           <a routerLink="/" fragment="producers">Producers</a>
           <a routerLink="/" fragment="how-it-works">How it works</a>
           <a routerLink="/request-sample" class="btn btn-primary">Order samples</a>

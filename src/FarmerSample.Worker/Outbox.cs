@@ -76,7 +76,9 @@ public sealed class OutboxDispatcher(IEmailSender email, IOptions<SmtpOptions> s
             case nameof(SampleRequestReceived):
                 var r = message.Read<SampleRequestReceived>();
                 var baseUrl = config["PublicBaseUrl"] ?? "http://localhost:8080";
-                var farmLine = r.FarmCode is null ? "General request (no farm selected)" : $"Farm: {r.FarmCode} — {baseUrl}/q/{r.FarmCode}";
+                var farmLine = r.LotCode is not null ? $"Lot: {r.LotCode} — {baseUrl}/q/{r.LotCode}"
+                    : r.FarmCode is not null ? $"Farm: {r.FarmCode} — {baseUrl}/q/{r.FarmCode}"
+                    : "General request (no farm or lot selected)";
                 await email.SendAsync(
                     smtp.Value.StaffInbox,
                     $"New sample request: {r.CompanyName} ({r.CountryCode})",

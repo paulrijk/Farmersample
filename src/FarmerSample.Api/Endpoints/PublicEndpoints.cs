@@ -1,6 +1,7 @@
 using FarmerSample.Core.Modules.Catalogue;
 using FarmerSample.Core.Modules.Catalogue.Contracts;
 using FarmerSample.Core.Modules.SupplyQuality.Contracts;
+using FarmerSample.Core.SharedKernel;
 
 namespace FarmerSample.Api.Endpoints;
 
@@ -26,6 +27,28 @@ public static class PublicEndpoints
             if (farm is null) return Results.NotFound();   // same answer for invalid, unknown and unpublished codes
             Cache(http);
             return Results.Ok(farm);
+        });
+
+        pub.MapGet("/lots", async (IPublicLotReader reader, HttpContext http, CancellationToken ct) =>
+        {
+            Cache(http);
+            return Results.Ok(await reader.ListPublishedAsync(ct));
+        });
+
+        pub.MapGet("/lots/{code}", async (string code, IPublicLotReader reader, HttpContext http, CancellationToken ct) =>
+        {
+            var lot = await reader.FindPublishedAsync(code, ct);
+            if (lot is null) return Results.NotFound();
+            Cache(http);
+            return Results.Ok(lot);
+        });
+
+        // QR codes carry one code for a farm (FM-…) or a lot (LT-…); the site asks what kind it is.
+        pub.MapGet("/q/{code}", (string code) =>
+        {
+            if (!PublicCode.TryNormalize(code, out var normalized)) return Results.NotFound();
+            var kind = normalized[..2] switch { PublicCode.FarmPrefix => "farm", PublicCode.LotPrefix => "lot", _ => null };
+            return kind is null ? Results.NotFound() : Results.Ok(new { kind, code = normalized });
         });
 
         pub.MapPost("/sample-requests", async (SampleRequestInput input, ISampleRequestService service, CancellationToken ct) =>

@@ -4,13 +4,14 @@ namespace FarmerSample.Core.SharedKernel;
 
 /// <summary>
 /// Random, non-sequential public codes such as <c>FM-7KQ2-M9XD</c>: a 2-letter prefix,
-/// 7 random Crockford base32 characters and 1 check character (mod 37).
+/// 7 random Crockford base32 characters and 1 check character (Luhn mod 32). The check catches every
+/// single-character typo and nearly every swap of two neighbouring characters (all except "0"↔"Z"),
+/// and uses the same letters and digits as the rest of the code.
 /// Codes cannot be enumerated and reveal nothing about volumes.
 /// </summary>
 public static class PublicCode
 {
     private const string Alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";   // Crockford base32
-    private const string CheckAlphabet = Alphabet + "*~$=U";              // Crockford check symbols (37)
 
     public const string FarmPrefix = "FM";
     public const string LotPrefix = "LT";
@@ -52,8 +53,22 @@ public static class PublicCode
 
     private static char CheckChar(string payload)
     {
-        long value = 0;
-        foreach (var c in payload) value = value * 32 + Alphabet.IndexOf(c);
-        return CheckAlphabet[(int)(value % 37)];
+        const int n = 32;
+        int factor = 2, sum = 0;
+        for (var i = payload.Length - 1; i >= 0; i--)
+        {
+            var addend = factor * Alphabet.IndexOf(payload[i]);
+            factor = factor == 2 ? 1 : 2;
+            sum += addend / n + addend % n;
+        }
+        return Alphabet[(n - sum % n) % n];
+    }
+
+    /// <summary>Recomputes the check character of a stored code (used once to migrate codes made with an older check scheme).</summary>
+    public static string WithCurrentCheck(string code)
+    {
+        var raw = code.Replace("-", "");
+        var payload = raw[2..9];
+        return $"{raw[..2]}-{payload[..4]}-{payload[4..]}{CheckChar(payload)}";
     }
 }

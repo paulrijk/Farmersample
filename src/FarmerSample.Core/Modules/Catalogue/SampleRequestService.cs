@@ -23,13 +23,16 @@ internal sealed class SampleRequestService(AppDbContext db) : ISampleRequestServ
             || !new EmailAddressAttribute().IsValid(i.Email) || i.CountryCode is not { Length: 2 })
             return null;
 
-        string? farmCode = null;
+        string? farmCode = null, lotCode = null;
         if (!string.IsNullOrWhiteSpace(i.FarmCode) && PublicCode.TryNormalize(i.FarmCode, out var normalized))
             farmCode = normalized;
+        if (!string.IsNullOrWhiteSpace(i.LotCode) && PublicCode.TryNormalize(i.LotCode, out var lotNormalized))
+            lotCode = lotNormalized;
 
         var request = new SampleRequest
         {
             FarmCode = farmCode,
+            LotCode = lotCode,
             CompanyName = Trim(i.CompanyName, 200),
             ContactName = Trim(i.ContactName, 200),
             Email = Trim(i.Email, 320),
@@ -38,14 +41,14 @@ internal sealed class SampleRequestService(AppDbContext db) : ISampleRequestServ
         };
         db.SampleRequests.Add(request);
         db.OutboxMessages.Add(OutboxMessage.Create(new SampleRequestReceived(
-            request.Id, request.CompanyName, request.ContactName, request.Email, request.CountryCode, request.FarmCode, request.Message)));
+            request.Id, request.CompanyName, request.ContactName, request.Email, request.CountryCode, request.FarmCode, request.Message, request.LotCode)));
         await db.SaveChangesAsync(ct);
         return request.Id;
     }
 
     public async Task<IReadOnlyList<SampleRequestDto>> ListAsync(CancellationToken ct) =>
         await db.SampleRequests.AsNoTracking().OrderByDescending(r => r.CreatedAt)
-            .Select(r => new SampleRequestDto(r.Id, r.FarmCode, r.CompanyName, r.ContactName, r.Email, r.CountryCode, r.Message, r.CreatedAt, r.HandledAt != null))
+            .Select(r => new SampleRequestDto(r.Id, r.FarmCode, r.LotCode, r.CompanyName, r.ContactName, r.Email, r.CountryCode, r.Message, r.CreatedAt, r.HandledAt != null))
             .ToListAsync(ct);
 
     private static string Trim(string s, int max) => s.Trim() is var t && t.Length > max ? t[..max] : s.Trim();

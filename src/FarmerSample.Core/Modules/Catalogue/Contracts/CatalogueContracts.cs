@@ -2,6 +2,7 @@ namespace FarmerSample.Core.Modules.Catalogue.Contracts;
 
 public sealed record SampleRequestInput(
     string? FarmCode,
+    string? LotCode,
     string CompanyName,
     string ContactName,
     string Email,
@@ -10,6 +11,6 @@ public sealed record SampleRequestInput(
     /// <summary>Honeypot: real people leave this empty.</summary>
     string? Website);
 
-public sealed record SampleRequestDto(Guid Id, string? FarmCode, string CompanyName, string ContactName, string Email, string CountryCode, string? Message, DateTimeOffset CreatedAt, bool Handled);
+public sealed record SampleRequestDto(Guid Id, string? FarmCode, string? LotCode, string CompanyName, string ContactName, string Email, string CountryCode, string? Message, DateTimeOffset CreatedAt, bool Handled);
 
-public sealed record SampleRequestReceived(Guid SampleRequestId, string CompanyName, string ContactName, string Email, string CountryCode, string? FarmCode, string? Message);
+public sealed record SampleRequestReceived(Guid SampleRequestId, string CompanyName, string ContactName, string Email, string CountryCode, string? FarmCode, string? Message, string? LotCode = null);
