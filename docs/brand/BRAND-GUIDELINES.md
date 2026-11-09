@@ -118,5 +118,9 @@ Prefer authentic photographs of Sri Lankan producers, pepper vines, cinnamon, ca
 | `docs/brand/logo/farmersample-emblem-original.png` | Original illustrated emblem as supplied (1536×1024, background is a baked-in checkerboard, not transparent) |
 | `docs/brand/logo/farmersample-emblem-cutout.png` | Same emblem with the background removed. Use on **light** backgrounds only (cream/white); edges look rough on dark green |
 | `web/projects/buyer-web/public/brand/emblem-*.webp` | Web versions (640 and 1200 px) used in the homepage hero |
+| `docs/brand/logo/farmersample-icon.svg` | Square "FS" icon: favicon, app icon, small labels (also `apple-touch-icon.png`, 180 px) |
+| `docs/brand/logo/farmersample-wordmark.svg` | Horizontal wordmark with descriptor line, as supplied |
+| `docs/brand/logo/farmersample-wordmark-compact.svg` | Same without the descriptor line, for headers (~40 px high) where it would be unreadable |
+| `docs/brand/logo/farmersample-wordmark-compact-reversed.svg` | Compact wordmark in cream and lighter gold for dark green backgrounds (footer, back-office sidebar) |
 
-Still needed (see "Next design deliverables"): a vector (SVG) horizontal wordmark and a square icon for navigation, favicon and small labels, plus a true transparent version of the emblem for dark backgrounds.
+Still open: a true transparent version of the illustrated emblem for dark backgrounds, and converting the text in the SVG icon and wordmark to outlines (they use the viewer's Georgia/Arial fonts, so letter shapes can differ slightly between devices).

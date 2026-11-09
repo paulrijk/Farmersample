@@ -8,8 +8,11 @@ import { RouterLink, RouterOutlet } from '@angular/router';
     <a class="visually-hidden" href="#main">Skip to content</a>
     <header class="site-header">
       <div class="container bar">
-        <a routerLink="/" class="wordmark" aria-label="FarmerSample.com home">
-          <span class="farmer">Farmer</span><span class="sample">Sample</span><span class="tld">.com</span>
+        <a routerLink="/" class="brand" aria-label="FarmerSample.com home">
+          <picture>
+            <source media="(max-width: 640px)" srcset="favicon.svg">
+            <img src="brand/wordmark.svg" alt="FarmerSample.com" width="393" height="40">
+          </picture>
         </a>
         <nav aria-label="Main">
           <a routerLink="/" fragment="producers">Producers</a>
@@ -22,7 +25,7 @@ import { RouterLink, RouterOutlet } from '@angular/router';
     <footer class="site-footer on-dark">
       <div class="container foot">
         <div>
-          <span class="wordmark"><span class="farmer">Farmer</span><span class="sample">Sample</span><span class="tld">.com</span></span>
+          <img src="brand/wordmark-reversed.svg" alt="FarmerSample.com" width="393" height="40" class="foot-logo">
           <p class="tagline">Verified at origin. Traded worldwide.</p>
           <p class="descriptor">Sri Lanka · Spices · Direct from Farmers</p>
         </div>
@@ -33,6 +36,9 @@ import { RouterLink, RouterOutlet } from '@angular/router';
   styles: `
     .site-header { background: var(--color-surface); border-bottom: 1px solid var(--color-border); position: sticky; top: 0; z-index: 10; }
     .bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 64px; }
+    .brand { display: flex; } .brand img { height: 40px; width: auto; display: block; }
+    @media (max-width: 640px) { .brand img { height: 40px; width: 40px; border-radius: 9px; } }
+    .foot-logo { height: 40px; width: auto; display: block; }
     nav { display: flex; align-items: center; gap: 1.25rem; }
     nav a:not(.btn) { color: var(--color-primary); text-decoration: none; font-weight: 600; font-size: .95rem; }
     nav a:not(.btn):hover { text-decoration: underline; }

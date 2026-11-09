@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="FarmerSample FS icon">
+<rect width="512" height="512" rx="96" fill="#0F3D2E"/>
+<path d="M249 156C188 110 203 59 274 38c9 51 3 88-25 118Z" fill="#8CC63E"/><path d="M262 157c-7-66 39-103 106-106-14 62-48 99-106 106Z" fill="#B6D72E"/><path d="M250 156 265 91m-3 66 58-63" stroke="#F7F3E8" stroke-width="7" stroke-linecap="round" fill="none"/>
+<text x="92" y="363" font-family="Georgia,serif" font-size="242" font-weight="bold" fill="#F7F3E8">F</text><text x="231" y="363" font-family="Georgia,serif" font-size="242" font-weight="bold" fill="#E8A126">S</text>
+<path d="M98 407Q259 455 410 393" stroke="#A7CB37" stroke-width="15" fill="none" stroke-linecap="round"/>
+</svg>

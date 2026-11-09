@@ -9,7 +9,7 @@ import { Auth } from '../auth';
   template: `
     <div class="wrap">
       <div class="card box">
-        <p class="wordmark"><span class="farmer">Farmer</span><span class="sample">Sample</span><span class="tld">.com</span></p>
+        <img class="logo" src="brand/wordmark.svg" alt="FarmerSample.com" width="336" height="34">
         <h1>Back office</h1>
         @if (step() === 'password') {
           <form (ngSubmit)="submitPassword()">
@@ -32,6 +32,7 @@ import { Auth } from '../auth';
   styles: `
     .wrap { min-height: 100vh; display: grid; place-items: center; padding: 1rem; background: linear-gradient(135deg, #0F3D2E, #2E7D7A); }
     .box { width: min(400px, 100%); padding: 2rem; }
+    .logo { width: 100%; height: auto; display: block; margin-bottom: 1rem; }
     h1 { font-size: 1.5rem; margin-top: .25rem; }
     button { width: 100%; }
   `,

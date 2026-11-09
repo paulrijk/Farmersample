@@ -8,7 +8,7 @@ import { Auth } from './auth';
   template: `
     <div class="layout">
       <aside class="side on-dark">
-        <a routerLink="/farms" class="wordmark"><span class="farmer">Farmer</span><span class="sample">Sample</span></a>
+        <a routerLink="/farms" class="brand"><img src="brand/wordmark-reversed.svg" alt="FarmerSample.com" width="200" height="20"></a>
         <p class="sub">Back office</p>
         <nav>
           <a routerLink="/farms" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Farms</a>
@@ -33,6 +33,7 @@ import { Auth } from './auth';
     .layout { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
     @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } }
     .side { background: var(--color-primary); color: var(--color-background); padding: 1.5rem 1.25rem; display: flex; flex-direction: column; gap: .5rem; }
+    .brand img { width: 100%; height: auto; display: block; }
     .sub { margin: 0 0 1.25rem; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
     nav { display: flex; flex-direction: column; gap: .25rem; }
     nav a { color: var(--color-background); text-decoration: none; padding: .55rem .75rem; border-radius: var(--radius-button); font-weight: 600; opacity: .85; }
