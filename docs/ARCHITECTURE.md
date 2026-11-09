@@ -1,8 +1,10 @@
-# FarmerSample.com — Development Architecture (v0.2)
+# FarmerSample.com — Development Architecture (v0.3)
 
 Status: draft for review · Owner: Paul (WeAuction) · Source: FarmerSample.com Business Plan draft v0.1 (9 Nov 2026)
 
-Changes since v0.1: grading moved to the per-farm sample batch and lot samples made explicit; M1 slimmed to a weeks-sized showcase; one DbContext; Stripe flow hardened; legal entity on every money record; GDPR scope and farmer consent corrected; document redaction; offline-PWA realities; state machines completed; single gateway; one cross-platform command set.
+Changes in v0.3: public pages are live SPA routes on a cached public API (no static regeneration); reservation lifecycle; volume-weighted composite samples; stock movements as from/to; M1 must/should cut line; sample requests stored; stronger consent evidence; demo command needs only Docker; Stripe races closed.
+
+Changes in v0.2: grading moved to the per-farm sample batch and lot samples made explicit; M1 slimmed to a weeks-sized showcase; one DbContext; Stripe flow hardened; legal entity on every money record; GDPR scope and farmer consent corrected; document redaction; offline-PWA realities; state machines completed; single gateway; one cross-platform command set.
 
 ## 0. Summary of decisions
 
@@ -74,7 +76,7 @@ flowchart LR
   end
   subgraph FarmerSample
     GW[Gateway<br/>Caddy reverse proxy]
-    BW[Buyer web<br/>Angular, prerendered public pages]
+    BW[Buyer web<br/>Angular SPA + cached public API]
     BO[Back office<br/>Angular]
     FI[Field PWA<br/>Angular, offline · M2]
     API[API<br/>.NET 10]
@@ -103,13 +105,13 @@ One origin for everything (`/`, `/admin`, `/field`, `/api`) so session cookies a
 | Concern | Choice | Notes |
 |---------|--------|-------|
 | Backend | .NET 10 LTS, ASP.NET Core Minimal APIs, one project per deployable (`Api`, `Worker`, `DbMigrator`) + `Core` library holding the modules | LTS to Nov 2028 |
-| Data | EF Core 10 + Npgsql, one `AppDbContext`, schemas per module | Optimistic concurrency via PostgreSQL `xmin` |
+| Data | EF Core 10 + Npgsql, one `AppDbContext`, schemas per module | `xmin` optimistic concurrency for ordinary edits; explicit `SELECT … FOR UPDATE` (via `FromSql`/`ExecuteSql` inside the transaction) only for reservations and offer acceptance |
 | Database | PostgreSQL 17 | Multi-arch image; Azure Flexible Server later |
 | Files | Azure Blob Storage SDK; Azurite locally | Private containers; public renditions only via API/CDN |
 | Background work | Transactional outbox table + `BackgroundService` in the Worker | Also runs timeouts (holds, offer expiry) |
 | Auth | ASP.NET Core Identity, HttpOnly SameSite=Lax cookies, antiforgery header; **TOTP MFA required for staff** (passkeys later) | No tokens in the browser |
 | API contract | OpenAPI generated at build; TypeScript client generated for Angular | |
-| Front-end | One Angular workspace: `buyer-web`, `backoffice`, `field` (M2) + shared libs. Public pages of `buyer-web` are **prerendered/SSG** at build and on publish; full SSR only if SEO data shows a need | |
+| Front-end | One Angular workspace: `buyer-web`, `backoffice`, `field` (M2) + shared libs. Public pages (`/q/{code}`, farm and lot pages) are **ordinary SPA routes** reading `/api/public/...`, which is anonymous, rate-limited and HTTP-cached (`Cache-Control: public, max-age=60`, ETag). Publishing, unpublishing or consent withdrawal is visible within a minute, with no rebuild. Visitors arrive via QR, so SEO is not a P0 need; if link previews (WhatsApp) or SEO become important, add small Razor-rendered `/q` and farm pages served by the API (no Node SSR server) | |
 | i18n | **Transloco** (runtime language switching) in all apps; English first, Sinhala/Tamil for field screens and farmer consent texts | |
 | UI | Angular Material + design tokens | |
 | Payments | Stripe Checkout (P1), **cards first**; add iDEAL/Bancontact later if buyers ask; no delayed-settlement methods (SEPA DD) in P1 | §7.3 |
@@ -126,7 +128,7 @@ Start (M0–M1) with four modules; the rest are added when their milestone start
 |--------|-----------|------|-----------|
 | Identity | M0 | Staff and buyer users, buyer companies, invitations, roles | Buyers invite-only; staff MFA |
 | Supply & Quality | M1 | Farmer, Farm, FarmProduct, Certification, **FarmerConsent**, SampleBatch, **Grading** (per batch), LabReport, **Lot**, LotContribution, LotSample | Gradings immutable/versioned; a lot's contributions share product + grade |
-| Catalogue | M1 | Public farm pages, QR resolution, buyer lot listing, sample requests (M1) | Built only from allow-listed fields and `BuyerSafe` documents |
+| Catalogue | M1 | Public API for farm/lot pages, QR resolution, buyer lot listing, **SampleRequest** records (M1) | Built only from allow-listed fields and `BuyerSafe` documents; sample requests stored in the DB (first funnel data) and e-mailed to staff; form protected by rate limit + honeypot + Cloudflare Turnstile |
 | Admin | M1 | Legal entities, countries, regions, currencies, FX rates, settings, audit log | |
 | Samples | M2 | Pouches, stock locations, stock movements, EU consolidated shipments, labels | Location derived from movements |
 | Orders & Payments | M2 | Sample orders, discovery boxes, Stripe, refunds, **credit ledger** | Legal entity on every record |
@@ -151,7 +153,7 @@ erDiagram
   SAMPLE_BATCH ||--o{ GRADING : "graded (versioned)"
   SAMPLE_BATCH ||--o{ LAB_REPORT : "tested (optional)"
   LOT ||--|{ LOT_CONTRIBUTION : bundles
-  SAMPLE_BATCH ||--o| LOT_CONTRIBUTION : "qualifies"
+  SAMPLE_BATCH ||--o{ LOT_CONTRIBUTION : "qualifies (one active at a time)"
   LOT ||--o{ LOT_SAMPLE : "represented by"
   LOT_SAMPLE ||--o{ POUCH : "cut into"
   LOT ||--o{ LAB_REPORT : "export lot test"
@@ -177,7 +179,7 @@ erDiagram
 2. **Lot** = sellable volume of one product + one grade, from **one or more farms** (bundling). A `LotContribution` links a farm's graded batch and the volume (kg) that farm commits. Rule: all contributions have the same product and confirmed grade; the lot's grade is confirmed by QC when the lot is created.
 3. **LotSample** = the physical sample buyers receive for that lot:
    - single-farm lot → the farm's batch itself;
-   - bundled lot → a **composite** made by QC from equal-ratio portions of the contributing batches (ratio recorded), re-checked for grade. Per-farm batch remainders are kept as **retained reference samples** for disputes.
+   - bundled lot → a **composite** made by QC from **volume-weighted** portions of the contributing batches (a farm committing 80 % of the volume supplies 80 % of the composite; QC may override with a reason), ratio recorded, re-checked for grade. Per-farm batch remainders are kept as **retained reference samples** for disputes.
 4. **Pouch** = a numbered, sealed portion of a LotSample (with a printed seal number and a QR to the lot page).
 
 The QR/lot page of a bundled lot lists all contributing farms (public profile names only) and each farm's share of the volume.
@@ -185,12 +187,13 @@ The QR/lot page of a bundled lot lists all contributing farms (public profile na
 **Key attributes**
 
 - **Lot**: `PublicCode` (random, §6.2), product, grade, country, region(s), harvest window, committed volume (kg; sum of contributions), indicative price range (min/max per kg, currency, Incoterm), `ValidUntil`, status `Draft → Published → Closed(SoldOut | Expired | Withdrawn)`. *Reserved/available volume is derived* from active reservations.
-- **Pouch**: `PublicCode` (random), `SealNumber` (sequential, physical only), weight (g), LotSample, status `Active | Consumed | Destroyed`. *Location derived* from the latest `StockMovement` (`Created@LK-hub → Shipped → Received@EU-stock → Picked → Delivered`).
+- **Pouch**: `PublicCode` (random), `SealNumber` (sequential, physical only), weight (g), LotSample, status `Active | Consumed | Destroyed`. *Location derived* from the latest `StockMovement`, which records `fromLocation`, `toLocation`, type (`Created`, `Transfer`, `Received`, `Picked`, `ShippedToBuyer`, `Delivered`, `Destroyed`), timestamp and reference. Pouches can be picked from the LK hub or from EU stock.
 - **Grading**: sample batch or lot sample, moisture %, density g/L, cleanliness, grade, operator, timestamp, photos, version, `SupersedesId` + reason.
 - **SampleOrder**: buyer company, **legal entity (seller)**, lines, totals incl. VAT, Stripe session + payment intent IDs, ship-from location, status.
 - **SampleOrderLine**: either a single lot sample (qty 1) or a **discovery box** (a curated box definition listing N lots); fulfilment creates `PouchAllocation`s (one per lot) at pick time. At checkout we reserve **quantity per lot and stock location**, not specific pouches.
 - **CreditEntry**: buyer company, **legal entity**, amount + currency, type (`SamplePurchase`, `Refund` (negative), `Redemption` (negative), `Expiry`), source document, timestamp. Balance = sum.
 - **Offer**: lot, buyer company, volume kg, price/kg, currency, Incoterm, delivery window, `ValidUntil`, status, versions (each counter = new version).
+- **Reservation**: lot, deal, kg, status `Active → Consumed` (deal Shipped/Completed) `| Released` (deal Cancelled). **Available volume = committed − Active − Consumed.**
 - **Deal**: accepted offer version, exporter of record (legal entity), commission % and amount, status `Agreed → Contracted → Shipped → Completed | Cancelled`.
 - **CommissionInvoice** (EU entity → buyer): commission/service fee, **sample credit redeemed here** as a line, VAT per EU rules.
 
@@ -234,7 +237,8 @@ stateDiagram-v2
 Invariants:
 
 - **Accept** creates a Deal and a `Reservation` for the volume in **one transaction**, guarded by a row lock on the lot (`SELECT … FOR UPDATE`) so that `committed − active reservations ≥ requested` holds under concurrency.
-- **Deal Cancelled** releases its reservation in the same transaction.
+- **Deal Cancelled** releases its reservation in the same transaction; **Deal Shipped** marks it Consumed.
+- A sample batch has at most one **active** lot contribution (successor lots after withdraw/expiry may reuse it).
 - When a lot reaches zero available volume or leaves `Published`, the worker closes open offers on it and notifies buyers.
 - The worker expires offers and lots on `ValidUntil`.
 - A lot cannot be edited in product/grade once it has offers; a change means withdraw + new lot.
@@ -276,10 +280,10 @@ sequenceDiagram
   B->>S: pays
   S-->>A: checkout.session.completed (signature, event id dedup)
   A->>A: if payment_status=paid → Paid, CreditEntry(+), outbox e-mail
-  A->>A: if hold already lost → refund via Stripe, notify staff
+  A->>A: if hold already released → try to re-reserve from current stock; refund only if truly out of stock, notify staff
   S-->>A: checkout.session.expired → release hold
   S-->>A: charge.refunded → CreditEntry(−), order Refunded
-  W->>W: safety net: release holds whose session is expired
+  W->>W: safety net: for overdue holds, retrieve the session from Stripe; release only if status = expired
 ```
 
 - Stripe Checkout's minimum `expires_at` is 30 minutes, so hold and session expire together.
@@ -294,13 +298,13 @@ Buyer makes an offer → staff and buyer counter in the offer thread → accept 
 
 ### 7.5 QR scan
 
-`https://<public-base-url>/q/{publicCode}` → lot or farm page (prerendered/cached): farm story, region (no exact location), products, certifications, structured lab summary (not the PDF), for bundled lots all contributing farms. Unknown codes return 404 without hinting. Rate-limited.
+`https://<public-base-url>/q/{publicCode}` → lot or farm page (SPA route on the cached public API): farm story, region (no exact location), products, certifications, structured lab summary (not the PDF), for bundled lots all contributing farms. Unknown codes return 404 without hinting. Rate-limited.
 
 ## 8. Front-end applications
 
 | App | Gateway path | Rendering | Milestone |
 |-----|--------------|-----------|-----------|
-| `buyer-web` | `/` | Public pages prerendered; buyer area SPA | M1 public, M2 buyer area |
+| `buyer-web` | `/` | SPA; public pages read the cached public API | M1 public, M2 buyer area |
 | `backoffice` | `/admin` | SPA, staff MFA | M1 |
 | `field` | `/field` | Offline PWA, phone-first, runtime EN/SI/TA | M2 |
 
@@ -320,7 +324,7 @@ Shared libs: `ui`, `api-client` (generated), `i18n`, `auth`.
 
 ### 9.2 Personal data (GDPR + PDPA)
 - **Controllers:** to be confirmed with counsel (§16): working assumption — the EU entity controls buyer data and published farmer profiles; the Sri Lankan entity controls intake data in Sri Lanka and transfers it to the EU entity under a documented PDPA cross-border basis (s.26) with a data-sharing agreement.
-- **FarmerConsent** captured at intake, in the farmer's language (Sinhala/Tamil/English): purposes (public profile, photos, family story, showing the farmer's price share, showing the plantation's legal name), who obtained it, when, how (signed form photo or in-app tick by agent with read-out text version). Withdrawal unpublishes within 48 h.
+- **FarmerConsent** captured at intake, in the farmer's language (Sinhala/Tamil/English): purposes (public profile, photos, family story, showing the farmer's price share, showing the plantation's legal name), who obtained it, when, the **consent text version** shown, and evidence. Default evidence is a **photo of the signed paper form**; an agent tick after reading the text aloud is a recorded fallback only, and is not enough for publishing photos of people. Withdrawal unpublishes within 48 h.
 - **Data minimisation:** no NIC numbers or bank details in P0–P1 (FarmerSample does not pay farmers). Phone numbers only for staff contact, stored in an internal table excluded from all public/buyer projections.
 - Retention schedule and data-subject request procedure in `docs/privacy.md`.
 - **Audit log** stores user IDs and entity IDs plus changed **non-personal** fields; personal-field changes are logged as "field X changed" without values, so erasure does not conflict with an append-only log.
@@ -338,7 +342,7 @@ Stripe signature verification, event-ID dedup, no card data on our servers (Chec
 ## 10. Local-first development environment
 
 ### 10.1 Prerequisites
-- **Demo mode:** Docker Desktop (or Docker Engine/Podman with Compose v2). Nothing else.
+- **Demo mode:** Docker Desktop (or Docker Engine/Podman with Compose v2). Nothing else: run `docker compose -f deploy/docker-compose.yml --profile app up --build -d` (the `npm run demo` script is the same command for developers who have Node).
 - **Developer mode:** + .NET 10 SDK, Node.js LTS, Git.
 
 ### 10.2 Repository layout
@@ -396,7 +400,7 @@ Local uses **plain HTTP on `localhost`** (browsers treat it as a secure context)
 
 ### 10.5 Payments locally (optional)
 1. Put Stripe **test** keys in `.env`, set `Payments__Enabled=true`.
-2. `docker compose --profile payments up stripe-cli` runs `stripe listen --forward-to gateway:80/api/v1/webhooks/stripe`; copy the printed `whsec_…` into `.env` as `Stripe__WebhookSecret`, restart `api`.
+2. `docker compose --profile payments up stripe-cli` runs `stripe listen --forward-to $STRIPE_FORWARD_TO`. Demo mode: `gateway:80/api/v1/webhooks/stripe`. Developer mode (API on the host): `host.docker.internal:<api-port>/api/v1/webhooks/stripe` (on Linux the service sets `extra_hosts: ["host.docker.internal:host-gateway"]`). Copy the printed `whsec_…` into `.env` as `Stripe__WebhookSecret`, restart `api`.
 Without this, the app runs with payments off (sample requests).
 
 ### 10.6 Testing the field PWA on a real phone (M2)
@@ -415,7 +419,7 @@ SQL views over module tables, shown on a back-office dashboard with CSV export:
 | Metric (business plan target) | Computed from |
 |-------------------------------|---------------|
 | Buyers ordering samples (20+), repeat buyers (10+) | paid SampleOrders per buyer company |
-| Sample → offer (10–20 %) | offers on a lot by a company within 60 days of a delivered sample of that lot |
+| Sample → offer (10–20 %) | offers on a lot by a company within 60 days of a delivered sample or a fulfilled sample request of that lot |
 | Offers that close (first 5–10 deals) | Deals `Completed` |
 | Price to farmer vs local traders | deal farmer share vs reference price entered by staff |
 | Farm visit → sample in EU (~2 weeks) | SampleBatch created → StockMovement `Received@EU-stock` |
@@ -427,7 +431,7 @@ SQL views over module tables, shown on a back-office dashboard with CSV export:
 - Architecture test (module references).
 - Privacy canary test (§9.3) runs in CI on every PR.
 - OpenAPI diff in CI.
-- Playwright smoke from M2: QR page, buyer login, sample request, offer → deal; checkout only in the `payments` job.
+- Playwright smoke from M2: QR page, buyer login, sample request; offer → deal added in M3; checkout only in the `payments` job.
 
 ## 13. Path to Azure (M4, or a minimal `test` early)
 
@@ -455,7 +459,7 @@ Bicep + GitHub Actions; `main` → `test`, tags → `prod`.
 | Milestone | Target | Content |
 |-----------|--------|---------|
 | **M0 Skeleton** | week 1 | Repo, Compose + gateway, npm scripts, CI, Identity (staff only), AppDbContext + migrator + seed, OTel to dashboard |
-| **M1 Showcase (P0)** | weeks 2–4, before the EDB meeting | Back office CRUD: farmers, farms, consent, sample batches, gradings, lots (incl. bundling), buyer-safe photo approval; mobile intake form + EDB spreadsheet import; public site with prerendered farm/lot pages and QR; "request a sample" form → staff e-mail; label PDF; demo via tunnel or `test` env |
+| **M1 Showcase (P0)** | weeks 2–4, before the EDB meeting | **Must:** back-office CRUD for farmers, farms, photos (buyer-safe approval), consent, sample batches, gradings, single-farm lots; mobile-friendly intake form; public farm + lot pages and QR; stored "request a sample" form → staff e-mail; demo via tunnel or `test` env. **Should (cut first if the date is at risk):** bundled lots + composite samples, label PDF, EDB spreadsheet import |
 | **M2 Showroom (P1 start)** | Feb 2027 | Buyer invites and accounts, catalogue, pouches/stock/EU shipments, Stripe sample orders + discovery boxes (if the EU entity exists), credit ledger, offline field PWA, Playwright |
 | **M3 Trading** | Mar–Apr 2027 | Offers, deals, reservations, commission invoices with credit redemption, messaging, KPI dashboard |
 | **M4 Hardening** | before public launch | Azure prod, backups/restore test, privacy documentation, security review |
