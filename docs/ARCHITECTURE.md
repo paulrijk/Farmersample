@@ -1,6 +1,6 @@
-# FarmerSample.com — Development Architecture (v0.3)
+# FarmerSample.com — Development Architecture (v1.0)
 
-Status: draft for review · Owner: Paul (WeAuction) · Source: FarmerSample.com Business Plan draft v0.1 (9 Nov 2026)
+Status: approved after 3 independent review rounds (Claude Fable 5.1) · Owner: Paul (WeAuction) · Source: FarmerSample.com Business Plan draft v0.1 (9 Nov 2026)
 
 Changes in v0.3: public pages are live SPA routes on a cached public API (no static regeneration); reservation lifecycle; volume-weighted composite samples; stock movements as from/to; M1 must/should cut line; sample requests stored; stronger consent evidence; demo command needs only Docker; Stripe races closed.
 
@@ -128,7 +128,7 @@ Start (M0–M1) with four modules; the rest are added when their milestone start
 |--------|-----------|------|-----------|
 | Identity | M0 | Staff and buyer users, buyer companies, invitations, roles | Buyers invite-only; staff MFA |
 | Supply & Quality | M1 | Farmer, Farm, FarmProduct, Certification, **FarmerConsent**, SampleBatch, **Grading** (per batch), LabReport, **Lot**, LotContribution, LotSample | Gradings immutable/versioned; a lot's contributions share product + grade |
-| Catalogue | M1 | Public API for farm/lot pages, QR resolution, buyer lot listing, **SampleRequest** records (M1) | Built only from allow-listed fields and `BuyerSafe` documents; sample requests stored in the DB (first funnel data) and e-mailed to staff; form protected by rate limit + honeypot + Cloudflare Turnstile |
+| Catalogue | M1 | Public API for farm/lot pages, QR resolution, buyer lot listing, **SampleRequest** records (M1) | Built only from allow-listed fields and `BuyerSafe` documents; sample requests stored in the DB (first funnel data) and e-mailed to staff; form protected by rate limit + honeypot + Cloudflare Turnstile (`Captcha:Enabled=false` by default locally, so no Cloudflare account is needed) |
 | Admin | M1 | Legal entities, countries, regions, currencies, FX rates, settings, audit log | |
 | Samples | M2 | Pouches, stock locations, stock movements, EU consolidated shipments, labels | Location derived from movements |
 | Orders & Payments | M2 | Sample orders, discovery boxes, Stripe, refunds, **credit ledger** | Legal entity on every record |
@@ -236,7 +236,7 @@ stateDiagram-v2
 
 Invariants:
 
-- **Accept** creates a Deal and a `Reservation` for the volume in **one transaction**, guarded by a row lock on the lot (`SELECT … FOR UPDATE`) so that `committed − active reservations ≥ requested` holds under concurrency.
+- **Accept** creates a Deal and a `Reservation` for the volume in **one transaction**, guarded by a row lock on the lot (`SELECT … FOR UPDATE`) so that available volume as defined in §6.1 (`committed − Active − Consumed`) ≥ requested holds under concurrency.
 - **Deal Cancelled** releases its reservation in the same transaction; **Deal Shipped** marks it Consumed.
 - A sample batch has at most one **active** lot contribution (successor lots after withdraw/expiry may reuse it).
 - When a lot reaches zero available volume or leaves `Published`, the worker closes open offers on it and notifies buyers.
@@ -263,7 +263,7 @@ The worker creates public image renditions (resized WebP, **all metadata strippe
 1. Hub receives the batch (scan batch label), dries, grades → `Grading` on the batch.
 2. QC creates a Lot from one or more graded batches of the same product + grade, records volumes per farm.
 3. QC makes the LotSample (single batch or composite with ratio), re-grades if composite, splits into pouches, prints labels (PDF sheet: public code + QR + seal number).
-4. Staff sets price range, `ValidUntil`, approves **buyer-safe** media/documents (§9.3), publishes. Catalogue pages regenerate.
+4. Staff sets price range, `ValidUntil`, approves **buyer-safe** media/documents (§9.3), publishes. Public API cache entries are evicted on publish (and expire within 60 s anyway).
 
 ### 7.3 Order a sample or discovery box (M2)
 
