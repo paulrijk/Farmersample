@@ -1,0 +1,87 @@
+# FarmerSample local stack.
+#   Infrastructure only (developer mode):  docker compose -f deploy/docker-compose.yml up -d
+#   Everything (demo mode):                docker compose -f deploy/docker-compose.yml --profile app up --build -d
+#   → http://localhost:8080 (site), /admin (back office), http://localhost:8025 (e-mail), http://localhost:18888 (telemetry)
+name: farmersample
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: farmersample
+      POSTGRES_USER: farmersample
+      POSTGRES_PASSWORD: farmersample
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U farmersample -d farmersample"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    command: azurite-blob --blobHost 0.0.0.0 --skipApiVersionCheck
+    ports: ["10000:10000"]
+    volumes: [azurite:/data]
+
+  mailpit:
+    image: axllent/mailpit
+    ports: ["8025:8025", "1025:1025"]
+
+  dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard
+    environment:
+      DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS: "true"   # local only
+    ports: ["18888:18888", "4317:18889", "4318:18890"]
+
+  migrator:
+    profiles: [app]
+    build: { context: .., dockerfile: deploy/dotnet.Dockerfile, args: { PROJECT: FarmerSample.DbMigrator } }
+    environment:
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=farmersample;Username=farmersample;Password=farmersample
+      Seed__DemoData: "true"
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  api:
+    profiles: [app]
+    build: { context: .., dockerfile: deploy/dotnet.Dockerfile, args: { PROJECT: FarmerSample.Api } }
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=farmersample;Username=farmersample;Password=farmersample
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://dashboard:18889
+      PublicBaseUrl: ${PUBLIC_BASE_URL:-http://localhost:8080}
+    depends_on:
+      migrator: { condition: service_completed_successfully }
+
+  worker:
+    profiles: [app]
+    build: { context: .., dockerfile: deploy/dotnet.Dockerfile, args: { PROJECT: FarmerSample.Worker } }
+    environment:
+      DOTNET_ENVIRONMENT: Development
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=farmersample;Username=farmersample;Password=farmersample
+      Smtp__Host: mailpit
+      Smtp__Port: "1025"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://dashboard:18889
+      PublicBaseUrl: ${PUBLIC_BASE_URL:-http://localhost:8080}
+    depends_on:
+      migrator: { condition: service_completed_successfully }
+
+  gateway:
+    profiles: [app]
+    build: { context: .., dockerfile: deploy/web.Dockerfile }
+    ports: ["8080:80"]
+    depends_on: [api]
+
+  stripe-cli:
+    profiles: [payments]
+    image: stripe/stripe-cli
+    command: listen --forward-to ${STRIPE_FORWARD_TO:-gateway:80/api/v1/webhooks/stripe}
+    environment:
+      STRIPE_API_KEY: ${STRIPE_API_KEY:-}
+    extra_hosts: ["host.docker.internal:host-gateway"]
+
+volumes:
+  pgdata:
+  azurite:

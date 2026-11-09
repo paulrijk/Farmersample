@@ -1,0 +1,19 @@
+{
+  "name": "farmersample",
+  "private": true,
+  "description": "FarmerSample.com — sample showroom for Sri Lankan spices. Same commands on Windows, macOS and Linux.",
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "infra": "docker compose -f deploy/docker-compose.yml up -d",
+    "infra:down": "docker compose -f deploy/docker-compose.yml down",
+    "db": "dotnet run --project src/FarmerSample.DbMigrator",
+    "api": "dotnet watch --project src/FarmerSample.Api --no-hot-reload",
+    "worker": "dotnet run --project src/FarmerSample.Worker",
+    "web": "npm --prefix web start",
+    "test": "dotnet test",
+    "demo": "docker compose -f deploy/docker-compose.yml --profile app up --build -d",
+    "demo:logs": "docker compose -f deploy/docker-compose.yml --profile app logs -f",
+    "demo:down": "docker compose -f deploy/docker-compose.yml --profile app down",
+    "reset": "docker compose -f deploy/docker-compose.yml --profile app down -v"
+  }
+}

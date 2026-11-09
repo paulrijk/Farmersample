@@ -1,0 +1,33 @@
+# One origin for everything, locally and in Azure: /, /admin, /api (and /field from M2).
+{
+	admin off
+}
+
+:80 {
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options DENY
+		Permissions-Policy "camera=(self), geolocation=(), microphone=()"
+		-Server
+	}
+
+	handle /api/* {
+		reverse_proxy api:8080
+	}
+
+	redir /admin /admin/
+	handle_path /admin/* {
+		root * /srv/backoffice
+		try_files {path} /index.html
+		file_server
+	}
+
+	handle {
+		root * /srv/buyer-web
+		try_files {path} /index.html
+		file_server
+	}
+}

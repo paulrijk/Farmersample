@@ -1,0 +1,66 @@
+// FarmerSample brand tokens — from docs/brand/BRAND-GUIDELINES.md (v0.1). Shared by every app.
+@use '@fontsource/inter/400.css' as inter-400;
+@use '@fontsource/inter/600.css' as inter-600;
+@use '@fontsource/inter/700.css' as inter-700;
+@use '@fontsource/playfair-display/600.css' as playfair-display-600;
+@use '@fontsource/playfair-display/700.css' as playfair-display-700;
+
+:root {
+  --color-primary: #0F3D2E;     // Ceylon Green
+  --color-accent: #C8922F;      // Spice Gold — fills and accents, not small text on cream
+  --color-cinnamon: #A64B2A;
+  --color-background: #F7F3E8;  // Tea Cream
+  --color-teal: #2E7D7A;
+  --color-text: #14251E;        // Ink
+  --color-surface: #FFFFFF;
+  --color-muted: #5B6B63;
+  --color-border: #E3DCC8;
+  --color-danger: #A3261B;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: Inter, Arial, system-ui, sans-serif;
+  --radius-card: 12px;
+  --radius-button: 8px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--color-background); color: var(--color-text); font: 400 16px/1.55 var(--font-body); -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { font-family: var(--font-display); color: var(--color-primary); font-weight: 700; line-height: 1.2; margin: 0 0 .5em; }
+h1 { font-size: clamp(2rem, 4vw, 3rem); }
+h2 { font-size: clamp(1.5rem, 3vw, 2rem); }
+h3 { font-size: 1.25rem; font-weight: 600; }
+a { color: var(--color-teal); }
+:focus-visible { outline: 3px solid var(--color-accent); outline-offset: 2px; }
+
+.container { width: min(1120px, 100% - 2rem); margin-inline: auto; }
+
+.wordmark { font: 700 1.35rem/1 var(--font-display); text-decoration: none; letter-spacing: -.01em; white-space: nowrap; }
+.wordmark .farmer { color: var(--color-primary); }
+.wordmark .sample { color: var(--color-accent); }
+.wordmark .tld { color: var(--color-primary); font-weight: 600; font-size: .8em; }
+.on-dark .wordmark .farmer, .on-dark .wordmark .tld { color: var(--color-background); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: .7rem 1.2rem; border-radius: var(--radius-button);
+  font: 600 .95rem/1 var(--font-body); text-decoration: none; cursor: pointer; border: 2px solid transparent; transition: background .15s, color .15s; }
+.btn-primary { background: var(--color-primary); color: var(--color-background); }
+.btn-primary:hover { background: #164f3c; }
+.btn-accent { background: var(--color-accent); color: var(--color-text); }
+.btn-accent:hover { background: #d6a043; }
+.btn-ghost { background: transparent; color: var(--color-primary); border-color: var(--color-primary); }
+.btn-ghost:hover { background: rgba(15, 61, 46, .06); }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+
+.card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: 1.25rem; }
+.chip { display: inline-block; padding: .2rem .6rem; border-radius: 999px; font-size: .8rem; font-weight: 600; background: #EAF2EE; color: var(--color-primary); }
+.chip-teal { background: #E3F0EF; color: #1F5654; }
+.chip-cinnamon { background: #F5E6DF; color: #7E3820; }
+.chip-gold { background: #F6EAD3; color: #6E4E12; }
+.muted { color: var(--color-muted); }
+
+label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: .35rem; }
+input, select, textarea { width: 100%; padding: .65rem .75rem; border: 1px solid #CFC6AE; border-radius: var(--radius-button); font: inherit; background: var(--color-surface); color: var(--color-text); }
+textarea { min-height: 6rem; resize: vertical; }
+.field { margin-bottom: 1rem; }
+.form-error { color: var(--color-danger); font-weight: 600; }
+.form-ok { color: var(--color-primary); font-weight: 600; }
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
