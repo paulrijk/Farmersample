@@ -15,6 +15,7 @@ import { GradingInput, Lot, StaffApi, errorText, publicSiteUrl } from '../staff-
       <div class="head">
         <h1>{{ l.product }} · {{ l.grade }}</h1>
         <div class="actions">
+          <a class="btn btn-ghost" [routerLink]="['/lots', l.id, 'photos']">Photos</a>
           <a class="btn btn-ghost" [routerLink]="['/labels']" [queryParams]="{ lot: l.code }">Print labels</a>
           @if (l.status === 'Published') { <a class="btn btn-ghost" [href]="site + '/lots/' + l.code" target="_blank" rel="noopener">View public page</a> }
           @if (l.status !== 'Closed') { <button class="btn btn-ghost" (click)="withdraw(l)">Withdraw</button> }

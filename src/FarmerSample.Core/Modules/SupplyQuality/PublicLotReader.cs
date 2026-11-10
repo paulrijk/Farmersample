@@ -26,6 +26,8 @@ internal sealed class PublicLotReader(AppDbContext db, TimeProvider clock) : IPu
             .Include(l => l.Contributions).ThenInclude(c => c.SampleBatch!).ThenInclude(b => b.Farm!).ThenInclude(f => f.Products)
             .Include(l => l.Contributions).ThenInclude(c => c.SampleBatch!).ThenInclude(b => b.Gradings)
             .Include(l => l.Sample!).ThenInclude(s => s.Gradings)
+            .Include(l => l.Photos.Where(p => p.Status == PhotoStatus.BuyerSafe))
+            .Include(l => l.Contributions).ThenInclude(c => c.SampleBatch!).ThenInclude(b => b.Farm!).ThenInclude(f => f.Photos.Where(p => p.Status == PhotoStatus.BuyerSafe))
             .AsSplitQuery();
     }
 
@@ -52,7 +54,11 @@ internal sealed class PublicLotReader(AppDbContext db, TimeProvider clock) : IPu
                 grading is null ? null : new PublicGradingDto(grading.Grade, grading.MoisturePercent, grading.DensityGramsPerLitre, grading.Cleanliness,
                     DateOnly.FromDateTime(grading.GradedAt.UtcDateTime)),
                 l.Contributions.Where(c => c.Active).Select(c => new PublicLotFarmDto(
-                    c.SampleBatch!.Farm!.PublicCode, c.SampleBatch.Farm.Name, regions[c.SampleBatch.Farm.RegionId], c.CompositeSharePercent)).ToList()));
+                    c.SampleBatch!.Farm!.PublicCode, c.SampleBatch.Farm.Name, regions[c.SampleBatch.Farm.RegionId], c.CompositeSharePercent)).ToList(),
+                l.Photos.OrderBy(p => p.UploadedAt).Select(p => new PublicPhotoDto($"/api/public/photos/{p.PublicId}", p.Width, p.Height, p.Caption))
+                    .Concat(farms.DistinctBy(f => f.Id).SelectMany(f => f.Photos.Where(p => PhotoService.PublicBlocker(p, f) is null).OrderBy(p => p.UploadedAt)
+                        .Select(p => new PublicPhotoDto($"/api/public/photos/{p.PublicId}", p.Width, p.Height, p.Caption ?? f.Name))))
+                    .ToList()));
         }
         return result;
     }

@@ -15,6 +15,7 @@ public static class CoreServiceCollectionExtensions
         services.AddSingleton(new Azure.Storage.Blobs.BlobServiceClient(blobConnectionString ?? "UseDevelopmentStorage=true"));
         services.AddSingleton<FarmerSample.Core.Storage.IBlobStore, FarmerSample.Core.Storage.AzureBlobStore>();
         services.AddScoped<IPhotoService, PhotoService>();
+        services.AddScoped<ILotPhotoService, LotPhotoService>();
         services.AddDbContext<AppDbContext>(o => o.UseNpgsql(connectionString));
         services.AddScoped<IPublicFarmReader, PublicFarmReader>();
         services.AddScoped<IFarmService, FarmService>();

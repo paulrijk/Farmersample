@@ -24,7 +24,8 @@ public sealed record PublicLotDto(
     string Currency, string Incoterm, DateOnly ValidUntil, int[] HarvestMonths, bool Bundled,
     /// <summary>Verified by FarmerSample's hub (as opposed to producer-supplied information).</summary>
     PublicGradingDto? HubGrading,
-    IReadOnlyList<PublicLotFarmDto> Farms);
+    IReadOnlyList<PublicLotFarmDto> Farms,
+    IReadOnlyList<PublicPhotoDto> Photos);
 
 public interface IPublicLotReader
 {

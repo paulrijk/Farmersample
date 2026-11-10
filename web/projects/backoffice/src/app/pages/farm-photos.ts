@@ -3,22 +3,30 @@ import { Component, inject, input, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { FarmPhoto, FarmSummary, StaffApi, errorText } from '../staff-api';
+import { FarmPhoto, StaffApi, errorText } from '../staff-api';
 
 @Component({
   selector: 'bo-farm-photos',
   imports: [FormsModule, RouterLink, DatePipe],
   template: `
-    <p class="muted"><a routerLink="/farms">Farms</a> / {{ farm()?.name }}</p>
-    <h1>Photos — {{ farm()?.name }}</h1>
-    <p class="muted">Buyers only see a photo after it is reviewed, and only if the farmer gave photo consent with a signed form.
-      They get a re-encoded copy without location or camera data; the original stays private.</p>
+    @if (kind() === 'lot') {
+      <p class="muted"><a routerLink="/lots">Lots</a> / <a [routerLink]="['/lots', id()]">{{ title() }}</a></p>
+      <h1>Photos — {{ title() }}</h1>
+      <p class="muted">Photos of the product itself: the graded sample, the bags, the drying floor. Buyers see a photo after it is reviewed
+        and the lot is published. No recognisable people here; photos of people belong with the farm, where consent is recorded.
+        Buyers get a re-encoded copy without location or camera data; the original stays private.</p>
+    } @else {
+      <p class="muted"><a routerLink="/farms">Farms</a> / {{ title() }}</p>
+      <h1>Photos — {{ title() }}</h1>
+      <p class="muted">Buyers only see a photo after it is reviewed, and only if the farmer gave photo consent with a signed form.
+        They get a re-encoded copy without location or camera data; the original stays private.</p>
+    }
 
     <form class="card upload" (ngSubmit)="upload()">
       <div class="field"><label for="ph-file">Photo (JPEG, PNG or WebP, max 15 MB)</label>
         <input id="ph-file" name="file" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" (change)="pick($event)"></div>
-      <div class="field"><label for="ph-cap">Caption <span class="muted">(shown to buyers)</span></label><input id="ph-cap" name="cap" [(ngModel)]="caption" maxlength="300" placeholder="e.g. Drying pepper on the estate"></div>
-      <label class="check"><input type="checkbox" name="people" [(ngModel)]="showsPeople"> Recognisable people are in this photo</label>
+      <div class="field"><label for="ph-cap">Caption <span class="muted">(shown to buyers)</span></label><input id="ph-cap" name="cap" [(ngModel)]="caption" maxlength="300" [placeholder]="kind() === 'lot' ? 'e.g. The graded sample of this lot' : 'e.g. Drying pepper on the estate'"></div>
+      @if (kind() === 'farm') { <label class="check"><input type="checkbox" name="people" [(ngModel)]="showsPeople"> Recognisable people are in this photo</label> }
       @if (uploadError()) { <p class="form-error" role="alert">{{ uploadError() }}</p> }
       <button class="btn btn-primary" [disabled]="!file || busy()">{{ busy() ? 'Uploading…' : 'Upload' }}</button>
     </form>
@@ -26,7 +34,7 @@ import { FarmPhoto, FarmSummary, StaffApi, errorText } from '../staff-api';
     <div class="grid">
       @for (p of photos(); track p.id) {
         <article class="card photo">
-          <img [src]="p.imageUrl" [alt]="p.caption ?? 'Farm photo'" loading="lazy">
+          <img [src]="p.imageUrl"  [alt]="p.caption ?? 'Photo'" loading="lazy">
           <div class="meta">
             <div class="chips">
               <span class="chip" [class.chip-gold]="p.status === 'PendingReview'" [class.chip-cinnamon]="p.status === 'Rejected'">{{ statusText(p.status) }}</span>
@@ -38,7 +46,7 @@ import { FarmPhoto, FarmSummary, StaffApi, errorText } from '../staff-api';
             <p class="muted small">Uploaded {{ p.uploadedAt | date: 'd MMM y' }} by {{ p.uploadedBy }}@if (p.reviewedBy) { · reviewed by {{ p.reviewedBy }} }@if (p.reviewNote) { · "{{ p.reviewNote }}" }</p>
             @if (reviewing() === p.id) {
               <div class="review">
-                <label class="check"><input type="checkbox" name="chk" [(ngModel)]="checked"> I checked: no names, signboards, number plates or phone numbers are readable</label>
+                <label class="check"><input type="checkbox" name="chk" [(ngModel)]="checked"> I checked: no @if (kind() === 'lot') { recognisable people, } names, signboards, number plates or phone numbers are readable</label>
                 <div class="field"><label [for]="'note' + p.id">Note <span class="muted">(required when rejecting)</span></label><input [id]="'note' + p.id" [name]="'note' + p.id" [(ngModel)]="note"></div>
                 @if (reviewError()) { <p class="form-error" role="alert">{{ reviewError() }}</p> }
                 <div class="buttons">
@@ -64,7 +72,9 @@ import { FarmPhoto, FarmSummary, StaffApi, errorText } from '../staff-api';
 export class FarmPhotosPage implements OnInit {
   private api = inject(StaffApi);
   id = input.required<string>();
-  protected farm = signal<FarmSummary | null>(null);
+  /** 'farm' (default) or 'lot', set by the route. */
+  kind = input<'farm' | 'lot'>('farm');
+  protected title = signal('');
   protected photos = signal<FarmPhoto[]>([]);
   protected busy = signal(false);
   protected uploadError = signal<string | null>(null);
@@ -74,11 +84,11 @@ export class FarmPhotosPage implements OnInit {
   protected caption = ''; protected showsPeople = false; protected checked = false; protected note = '';
 
   async ngOnInit() {
-    const farms = await firstValueFrom(this.api.farms());
-    this.farm.set(farms.find(f => f.id === this.id()) ?? null);
+    if (this.kind() === 'lot') { const l = await firstValueFrom(this.api.lot(this.id())); this.title.set(`${l.code} · ${l.product} ${l.grade}`); }
+    else { const farms = await firstValueFrom(this.api.farms()); this.title.set(farms.find(f => f.id === this.id())?.name ?? ''); }
     await this.load();
   }
-  private async load() { this.photos.set(await firstValueFrom(this.api.photos(this.id()))); }
+  private async load() { this.photos.set(await firstValueFrom(this.kind() === 'lot' ? this.api.lotPhotos(this.id()) : this.api.photos(this.id()))); }
   protected statusText = (s: string) => ({ PendingReview: 'Needs review', BuyerSafe: 'Buyer-safe', Rejected: 'Rejected' } as Record<string, string>)[s] ?? s;
 
   pick(e: Event) { this.file = (e.target as HTMLInputElement).files?.[0] ?? null; }
@@ -87,7 +97,7 @@ export class FarmPhotosPage implements OnInit {
     if (!this.file) return;
     this.busy.set(true); this.uploadError.set(null);
     try {
-      await firstValueFrom(this.api.uploadPhoto(this.id(), this.file, this.caption, this.showsPeople));
+      await firstValueFrom(this.kind() === 'lot' ? this.api.uploadLotPhoto(this.id(), this.file, this.caption) : this.api.uploadPhoto(this.id(), this.file, this.caption, this.showsPeople));
       this.caption = ''; this.showsPeople = false; this.file = null;
       (document.getElementById('ph-file') as HTMLInputElement).value = '';
       await this.load();
@@ -99,7 +109,7 @@ export class FarmPhotosPage implements OnInit {
 
   async review(p: FarmPhoto, buyerSafe: boolean) {
     this.reviewError.set(null);
-    try { await firstValueFrom(this.api.reviewPhoto(p.id, buyerSafe, this.checked, this.note || null)); this.reviewing.set(null); await this.load(); }
+    try { await firstValueFrom(this.kind() === 'lot' ? this.api.reviewLotPhoto(p.id, buyerSafe, this.checked, this.note || null) : this.api.reviewPhoto(p.id, buyerSafe, this.checked, this.note || null)); this.reviewing.set(null); await this.load(); }
     catch (e) { this.reviewError.set(errorText(e)); }
   }
 }

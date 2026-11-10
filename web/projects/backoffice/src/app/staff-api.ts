@@ -32,6 +32,14 @@ export class StaffApi {
     const form = new FormData(); form.append('file', file); form.append('caption', caption); form.append('showsPeople', String(showsPeople));
     return this.http.post<FarmPhoto>(`${this.base}/farms/${farmId}/photos`, form);
   }
+  lotPhotos(lotId: string) { return this.http.get<FarmPhoto[]>(`${this.base}/lots/${lotId}/photos`); }
+  uploadLotPhoto(lotId: string, file: File, caption: string) {
+    const form = new FormData(); form.append('file', file); form.append('caption', caption);
+    return this.http.post<FarmPhoto>(`${this.base}/lots/${lotId}/photos`, form);
+  }
+  reviewLotPhoto(id: string, buyerSafe: boolean, checkedNoIdentifyingDetails: boolean, note: string | null) {
+    return this.http.post<FarmPhoto>(`${this.base}/lot-photos/${id}/review`, { buyerSafe, checkedNoIdentifyingDetails, note });
+  }
   reviewPhoto(id: string, buyerSafe: boolean, checkedNoIdentifyingDetails: boolean, note: string | null) {
     return this.http.post<FarmPhoto>(`${this.base}/photos/${id}/review`, { buyerSafe, checkedNoIdentifyingDetails, note });
   }

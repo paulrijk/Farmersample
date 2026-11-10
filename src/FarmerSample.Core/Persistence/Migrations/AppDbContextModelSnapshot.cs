@@ -590,6 +590,67 @@ namespace FarmerSample.Core.Persistence.Migrations
                     b.ToTable("lot_contributions", "supply");
                 });
 
+            modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.LotPhoto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Caption")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("LotId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("OriginalBlobName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("PublicId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RenditionBlobName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ReviewNote")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReviewedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTimeOffset>("UploadedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UploadedBy")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LotId");
+
+                    b.HasIndex("PublicId")
+                        .IsUnique();
+
+                    b.ToTable("lot_photos", "supply");
+                });
+
             modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.LotSample", b =>
                 {
                     b.Property<Guid>("Id")
@@ -953,6 +1014,15 @@ namespace FarmerSample.Core.Persistence.Migrations
                     b.Navigation("SampleBatch");
                 });
 
+            modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.LotPhoto", b =>
+                {
+                    b.HasOne("FarmerSample.Core.Modules.SupplyQuality.Lot", null)
+                        .WithMany("Photos")
+                        .HasForeignKey("LotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.LotSample", b =>
                 {
                     b.HasOne("FarmerSample.Core.Modules.SupplyQuality.Lot", null)
@@ -1043,6 +1113,8 @@ namespace FarmerSample.Core.Persistence.Migrations
             modelBuilder.Entity("FarmerSample.Core.Modules.SupplyQuality.Lot", b =>
                 {
                     b.Navigation("Contributions");
+
+                    b.Navigation("Photos");
 
                     b.Navigation("Sample");
                 });

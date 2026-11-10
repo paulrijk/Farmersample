@@ -30,6 +30,13 @@ type State = { status: 'loading' } | { status: 'missing' } | { status: 'ok'; lot
             indicative {{ price(l.priceMinPerKg, l.currency) }}–{{ price(l.priceMaxPerKg, l.currency) }} per kg, {{ l.incoterm }}</p>
           <div class="layout">
             <div>
+              @if (l.photos.length) {
+                <div class="photos" [class.single]="l.photos.length === 1">
+                  @for (ph of l.photos; track ph.url) {
+                    <figure><img [src]="ph.url" [width]="ph.width" [height]="ph.height" [alt]="ph.caption ?? l.product" loading="lazy">@if (ph.caption) { <figcaption>{{ ph.caption }}</figcaption> }</figure>
+                  }
+                </div>
+              }
               <section class="card verified">
                 <h2>Graded at our hub <span class="chip chip-teal">Verified by FarmerSample</span></h2>
                 @if (l.hubGrading; as g) {
@@ -84,6 +91,10 @@ type State = { status: 'loading' } | { status: 'missing' } | { status: 'ok'; lot
     .lead { font-size: 1.1rem; max-width: 60ch; }
     .layout { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1fr) 360px; align-items: start; margin-top: 1.5rem; }
     @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+    .photos { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); margin-bottom: 1.5rem; }
+    .photos.single { grid-template-columns: 1fr; } .photos.single img { aspect-ratio: 16/9; }
+    figure { margin: 0; } figure img { width: 100%; height: auto; aspect-ratio: 4/3; object-fit: cover; border-radius: var(--radius-card); display: block; }
+    figcaption { font-size: .85rem; color: var(--color-muted); margin-top: .3rem; }
     .verified { border-left: 4px solid var(--color-teal); margin-bottom: 2rem; }
     .verified h2 { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; font-size: 1.35rem; }
     .facts { display: grid; grid-template-columns: max-content 1fr; gap: .45rem 1.5rem; margin: 0 0 1rem; }

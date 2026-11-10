@@ -27,3 +27,26 @@ public class FarmPhoto
     public DateTimeOffset? ReviewedAt { get; set; }
     public string? ReviewNote { get; set; }
 }
+
+/// <summary>
+/// A photo of a lot: the product itself (the graded sample, the bags, the drying floor). Same handling as farm
+/// photos: private original, metadata-free rendition, and a buyer-safe review before buyers see it.
+/// People should not be recognisable in lot photos; photos of people belong to the farm, where consent is recorded.
+/// </summary>
+public class LotPhoto
+{
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid PublicId { get; set; } = Guid.NewGuid();
+    public Guid LotId { get; set; }
+    public required string OriginalBlobName { get; set; }
+    public required string RenditionBlobName { get; set; }
+    public int Width { get; set; }
+    public int Height { get; set; }
+    public string? Caption { get; set; }
+    public PhotoStatus Status { get; set; } = PhotoStatus.PendingReview;
+    public required string UploadedBy { get; set; }
+    public DateTimeOffset UploadedAt { get; set; } = DateTimeOffset.UtcNow;
+    public string? ReviewedBy { get; set; }
+    public DateTimeOffset? ReviewedAt { get; set; }
+    public string? ReviewNote { get; set; }
+}

@@ -53,9 +53,9 @@ public static class PublicEndpoints
         });
 
         // Buyer-safe renditions only (re-encoded, no metadata); 404 for anything else, including withdrawn consent.
-        pub.MapGet("/photos/{publicId:guid}", async (Guid publicId, IPhotoService photos, HttpContext http, CancellationToken ct) =>
+        pub.MapGet("/photos/{publicId:guid}", async (Guid publicId, IPhotoService photos, ILotPhotoService lotPhotos, HttpContext http, CancellationToken ct) =>
         {
-            if (await photos.GetPublicImageAsync(publicId, ct) is not var (stream, type)) return Results.NotFound();
+            if ((await photos.GetPublicImageAsync(publicId, ct) ?? await lotPhotos.GetPublicImageAsync(publicId, ct)) is not var (stream, type)) return Results.NotFound();
             http.Response.Headers.CacheControl = "public, max-age=3600";
             return Results.Stream(stream, type);
         });

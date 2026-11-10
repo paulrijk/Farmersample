@@ -8,6 +8,7 @@ import { PublicLot, kg, money } from '../../../../../shared/api';
   template: `
     @let l = lot();
     <article class="card lot-card">
+      @if (l.photos[0]; as ph) { <a [routerLink]="['/lots', l.code]" class="photo" tabindex="-1" aria-hidden="true"><img [src]="ph.url" alt="" loading="lazy" width="400" height="170"></a> }
       <div class="top">
         <span class="chip chip-cinnamon">{{ l.product }}</span>
         @if (l.hubGrading) { <span class="chip chip-teal" title="Graded at the FarmerSample hub">Hub graded</span> }
@@ -25,6 +26,7 @@ import { PublicLot, kg, money } from '../../../../../shared/api';
   `,
   styles: `
     .lot-card { display: flex; flex-direction: column; gap: .6rem; height: 100%; }
+    .photo { margin: -1.25rem -1.25rem .4rem; display: block; } .photo img { width: 100%; height: 170px; object-fit: cover; display: block; border-radius: var(--radius-card) var(--radius-card) 0 0; }
     .top { display: flex; gap: .4rem; flex-wrap: wrap; }
     h3 { margin: 0; } h3 a { color: inherit; text-decoration: none; } h3 a:hover { text-decoration: underline; }
     .origin { margin: 0; font-size: .8rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--color-cinnamon); }

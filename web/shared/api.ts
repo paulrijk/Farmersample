@@ -11,6 +11,7 @@ export interface PublicLot {
   code: string; product: string; grade: string; country: string; volumeKg: number; priceMinPerKg: number; priceMaxPerKg: number;
   currency: string; incoterm: string; validUntil: string; harvestMonths: number[]; bundled: boolean;
   hubGrading: PublicGrading | null; farms: PublicLotFarm[];
+  photos: { url: string; width: number; height: number; caption: string | null }[];
 }
 export interface SampleRequestInput {
   farmCode: string | null; lotCode: string | null; companyName: string; contactName: string; email: string;

@@ -13,6 +13,7 @@ export const routes: Routes = [
       { path: 'sample-batches', loadComponent: () => import('./pages/sample-batches').then(m => m.SampleBatchesPage), title: 'Sample batches — back office' },
       { path: 'lots', loadComponent: () => import('./pages/lots').then(m => m.LotsPage), title: 'Lots — back office' },
       { path: 'lots/new', loadComponent: () => import('./pages/new-lot').then(m => m.NewLotPage), title: 'New lot — back office' },
+      { path: 'lots/:id/photos', data: { kind: 'lot' }, loadComponent: () => import('./pages/farm-photos').then(m => m.FarmPhotosPage), title: 'Lot photos — back office' },
       { path: 'lots/:id', loadComponent: () => import('./pages/lot-detail').then(m => m.LotDetailPage), title: 'Lot — back office' },
       { path: 'labels', loadComponent: () => import('./pages/labels').then(m => m.LabelsPage), title: 'QR labels — back office' },
       { path: 'sample-requests', loadComponent: () => import('./pages/sample-requests').then(m => m.SampleRequestsPage), title: 'Sample requests — back office' },

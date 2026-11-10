@@ -26,6 +26,7 @@ public class Lot
 
     public List<LotContribution> Contributions { get; set; } = [];
     public LotSample? Sample { get; set; }
+    public List<LotPhoto> Photos { get; set; } = [];
 
     public int CommittedVolumeKg => Contributions.Where(c => c.Active).Sum(c => c.VolumeKg);
     public bool IsBundled => Contributions.Count(c => c.Active) > 1;

@@ -147,6 +147,37 @@ public class LotAndPhotoTests(ApiFixture api) : IClassFixture<ApiFixture>
         Assert.DoesNotContain(photo.Id.ToString(), farmJson);
     }
 
+    [Fact]
+    public async Task Lot_photos_reach_buyers_only_after_review_and_once_the_lot_is_published()
+    {
+        var farm = await FarmAsync("Canary Farm");
+        var batch = await GradedBatchAsync(farm.Id);
+        var lot = await InScope(sp => sp.GetRequiredService<ILotService>().CreateAsync(Lot((batch.Id, 700)), default));
+        var photo = await InScope(sp => sp.GetRequiredService<ILotPhotoService>().UploadAsync(lot.Id, JpegWithExif("GPS CANARY-LOT-PHOTO"), "sample.jpg", "The graded sample", "qc", default));
+        var publicId = await InScope(sp => sp.GetRequiredService<AppDbContext>().LotPhotos.Where(p => p.Id == photo.Id).Select(p => p.PublicId).SingleAsync());
+        var client = api.CreateClient();
+
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync($"/api/public/photos/{publicId}")).StatusCode);   // not reviewed
+        await Assert.ThrowsAsync<DomainException>(() => InScope(sp => sp.GetRequiredService<ILotPhotoService>().ReviewAsync(photo.Id, new PhotoReviewRequest(true, false, null), "qc", default)));
+        await InScope(sp => sp.GetRequiredService<ILotPhotoService>().ReviewAsync(photo.Id, new PhotoReviewRequest(true, true, null), "qc", default));
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync($"/api/public/photos/{publicId}")).StatusCode);   // lot still a draft
+
+        await InScope(sp => sp.GetRequiredService<ILotService>().PublishAsync(lot.Id, default));
+        var response = await client.GetAsync($"/api/public/photos/{publicId}");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var bytes = Encoding.ASCII.GetString(await response.Content.ReadAsByteArrayAsync());
+        Assert.DoesNotContain("CANARY", bytes);
+        Assert.DoesNotContain("Exif", bytes);
+
+        var lotJson = await client.GetStringAsync($"/api/public/lots/{lot.Code}");
+        Assert.Contains(publicId.ToString(), lotJson);
+        Assert.Contains("The graded sample", lotJson);
+        Assert.DoesNotContain(photo.Id.ToString(), lotJson);
+
+        await InScope(sp => sp.GetRequiredService<ILotService>().WithdrawAsync(lot.Id, default));
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync($"/api/public/photos/{publicId}")).StatusCode);   // withdrawn lot
+    }
+
     private static byte[] JpegWithExif(string canary)
     {
         using var bmp = new SKBitmap(640, 480);
