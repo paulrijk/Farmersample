@@ -54,6 +54,21 @@ builder.Services.ConfigureApplicationCookie(o =>
     o.Events.OnRedirectToAccessDenied = ctx => { ctx.Response.StatusCode = StatusCodes.Status403Forbidden; return Task.CompletedTask; };
 });
 
+// Sessions are re-checked against the database every few minutes, so a disabled account or a reset password
+// takes effect quickly. The re-check must keep the proof of two-factor sign-in ("amr"), or staff would be
+// locked out of the back office after the first re-check.
+builder.Services.Configure<SecurityStampValidatorOptions>(o =>
+{
+    o.ValidationInterval = TimeSpan.FromSeconds(config.GetValue("Auth:SessionRecheckSeconds", 300));
+    o.OnRefreshingPrincipal = ctx =>
+    {
+        var identity = (System.Security.Claims.ClaimsIdentity)ctx.NewPrincipal!.Identity!;
+        foreach (var claim in ctx.CurrentPrincipal!.FindAll("amr").Concat(ctx.CurrentPrincipal.FindAll(System.Security.Claims.ClaimTypes.AuthenticationMethod)))
+            if (!identity.HasClaim(claim.Type, claim.Value)) identity.AddClaim(new System.Security.Claims.Claim(claim.Type, claim.Value));
+        return Task.CompletedTask;
+    };
+});
+
 var requireStaffMfa = config.GetValue("Auth:RequireStaffMfa", true);
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy(Policies.Staff, p => Policies.ConfigureStaff(p, requireStaffMfa))
@@ -108,6 +123,7 @@ app.MapHealthEndpoints();
 app.MapPublicEndpoints();
 app.MapAuthEndpoints();
 app.MapStaffEndpoints();
+app.MapAdminEndpoints();
 
 app.Run();
 

@@ -13,3 +13,8 @@ public static class Roles
 }
 
 public sealed record CurrentUserDto(Guid Id, string Email, string DisplayName, string[] Roles, bool MfaEnabled, bool MfaSatisfied);
+
+public sealed record StaffUserDto(Guid Id, string Email, string DisplayName, string[] Roles, bool MfaEnabled, bool Disabled);
+public sealed record CreateStaffUserRequest(string Email, string DisplayName, string Role, string Password);
+public sealed record SetPasswordRequest(string Password);
+public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);

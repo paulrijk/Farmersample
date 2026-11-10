@@ -73,4 +73,13 @@ public class PublicApiTests(ApiFixture api) : IClassFixture<ApiFixture>
         var response = await api.CreateClient().GetAsync("/api/v1/staff/farms");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Theory]
+    [InlineData("GET", "/api/v1/admin/users")]
+    [InlineData("POST", "/api/v1/admin/users")]
+    public async Task User_management_requires_sign_in(string method, string url)
+    {
+        var response = await api.CreateClient().SendAsync(new HttpRequestMessage(new HttpMethod(method), url));
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
 }

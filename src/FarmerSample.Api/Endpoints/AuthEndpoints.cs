@@ -60,6 +60,18 @@ public static class AuthEndpoints
                 MfaSatisfied: principal.HasClaim("amr", "mfa")));
         }).RequireAuthorization();
 
+        auth.MapPost("/change-password", async (ChangePasswordRequest r, ClaimsPrincipal principal, UserManager<AppUser> users, SignInManager<AppUser> signIn, IAntiforgery af, HttpContext http) =>
+        {
+            var user = await users.GetUserAsync(principal);
+            if (user is null) return Results.Unauthorized();
+            var result = await users.ChangePasswordAsync(user, r.CurrentPassword, r.NewPassword);
+            if (!result.Succeeded)
+                return Results.Problem(string.Join(" ", result.Errors.Select(e => e.Description)), statusCode: StatusCodes.Status422UnprocessableEntity, title: "Not possible");
+            await signIn.RefreshSignInAsync(user);   // keeps this session (and its two-factor proof) valid
+            AntiforgeryFilter.IssueToken(af, http);
+            return Results.NoContent();
+        }).RequireAuthorization().RequireRateLimiting(RateLimits.Sensitive).AddEndpointFilter<AntiforgeryFilter>();
+
         // ---- TOTP set-up (authenticator app) ----
         auth.MapGet("/mfa/setup", async (ClaimsPrincipal principal, UserManager<AppUser> users, IConfiguration config) =>
         {

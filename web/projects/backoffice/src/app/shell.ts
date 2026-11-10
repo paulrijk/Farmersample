@@ -17,7 +17,9 @@ import { Auth } from './auth';
           <a routerLink="/lots" routerLinkActive="active">Lots</a>
           <a routerLink="/labels" routerLinkActive="active">QR labels</a>
           <a routerLink="/sample-requests" routerLinkActive="active">Sample requests</a>
+          @if (auth.user()?.roles?.includes('Admin')) { <a routerLink="/users" routerLinkActive="active">Users</a> }
           <a routerLink="/mfa" routerLinkActive="active">Two-factor sign-in</a>
+          <a routerLink="/password" routerLinkActive="active">Change password</a>
         </nav>
         <div class="me">
           <p>{{ auth.user()?.displayName }}<br><span>{{ auth.user()?.email }}</span></p>

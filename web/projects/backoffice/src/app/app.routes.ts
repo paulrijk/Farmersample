@@ -16,6 +16,8 @@ export const routes: Routes = [
       { path: 'lots/:id', loadComponent: () => import('./pages/lot-detail').then(m => m.LotDetailPage), title: 'Lot — back office' },
       { path: 'labels', loadComponent: () => import('./pages/labels').then(m => m.LabelsPage), title: 'QR labels — back office' },
       { path: 'sample-requests', loadComponent: () => import('./pages/sample-requests').then(m => m.SampleRequestsPage), title: 'Sample requests — back office' },
+      { path: 'users', loadComponent: () => import('./pages/users').then(m => m.UsersPage), title: 'Users — back office' },
+      { path: 'password', loadComponent: () => import('./pages/password').then(m => m.PasswordPage), title: 'Change password — back office' },
       { path: 'mfa', loadComponent: () => import('./pages/mfa').then(m => m.MfaPage), title: 'Two-factor sign-in — back office' },
     ],
   },

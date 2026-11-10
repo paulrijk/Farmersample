@@ -48,7 +48,7 @@ export const authErrorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const auth = inject(Auth);
   return next(req).pipe(catchError((e: HttpErrorResponse) => {
-    if (req.url.startsWith('/api/v1/staff')) {
+    if (req.url.startsWith('/api/v1/staff') || req.url.startsWith('/api/v1/admin')) {
       if (e.status === 401) { auth.user.set(null); router.navigate(['/login']); }
       if (e.status === 403 && auth.user() && !auth.user()!.mfaSatisfied) router.navigate(['/mfa']);
     }
