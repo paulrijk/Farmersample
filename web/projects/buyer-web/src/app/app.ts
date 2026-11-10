@@ -39,7 +39,7 @@ import { RouterLink, RouterOutlet } from '@angular/router';
     .bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 64px; }
     .brand { display: flex; } .brand img { height: 40px; width: auto; display: block; }
     @media (max-width: 640px) { .brand img { height: 40px; width: 40px; border-radius: 9px; } }
-    .foot-logo { height: 40px; width: auto; display: block; }
+    .foot-logo { width: min(393px, 100%); height: auto; display: block; }
     nav { display: flex; align-items: center; gap: 1.25rem; }
     nav a:not(.btn) { color: var(--color-primary); text-decoration: none; font-weight: 600; font-size: .95rem; }
     nav a:not(.btn):hover { text-decoration: underline; }
