@@ -9,7 +9,9 @@ RUN npx ng build buyer-web --configuration production \
 
 FROM caddy:2
 COPY deploy/Caddyfile /etc/caddy/Caddyfile
-COPY --chmod=755 deploy/gateway-entrypoint.sh /usr/local/bin/gateway-entrypoint.sh
+# No COPY --chmod: Azure Container Registry builds run without BuildKit.
+COPY deploy/gateway-entrypoint.sh /usr/local/bin/gateway-entrypoint.sh
+RUN chmod 755 /usr/local/bin/gateway-entrypoint.sh
 COPY --from=build /web/dist/buyer-web/browser /srv/buyer-web
 COPY --from=build /web/dist/backoffice/browser /srv/backoffice
 CMD ["/usr/local/bin/gateway-entrypoint.sh"]

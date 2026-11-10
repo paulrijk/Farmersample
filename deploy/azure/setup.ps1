@@ -35,9 +35,12 @@ foreach ($ns in 'Microsoft.App', 'Microsoft.ContainerRegistry', 'Microsoft.DBfor
 
 Step "Passwords"
 $sitePassword  = Plain (Read-Host "Shared SITE password (for the EDB, Saj, invited buyers)" -AsSecureString)
-$staffPassword = Plain (Read-Host "BACK-OFFICE password for admin@/qc@/field@farmersample.local (min. 12 characters)" -AsSecureString)
+$staffPassword = Plain (Read-Host "BACK-OFFICE password for admin@/qc@/field@farmersample.local (min. 12 characters, with a capital, a lower-case letter and a digit)" -AsSecureString)
 if ($sitePassword.Length -lt 8)   { throw "Choose a site password of at least 8 characters." }
 if ($staffPassword.Length -lt 12) { throw "The back-office password needs at least 12 characters." }
+if ($staffPassword -cnotmatch '[A-Z]' -or $staffPassword -cnotmatch '[a-z]' -or $staffPassword -notmatch '[0-9]') {
+  throw "The back-office password needs a capital letter, a lower-case letter and a digit."
+}
 
 # The database password is generated once and kept in a local file that git ignores.
 $secretFile = Join-Path $PSScriptRoot '.db-password.local'
