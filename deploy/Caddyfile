@@ -1,10 +1,18 @@
 # One origin for everything, locally and in Azure: /, /admin, /api (and /field from M2).
 {
 	admin off
+	# Trust the platform's own load balancer (Azure Container Apps, incl. its 100.64/10 range) so the API
+	# learns the visitor's real address and that the request arrived over HTTPS.
+	servers {
+		trusted_proxies static private_ranges 100.64.0.0/10
+	}
 }
 
 :80 {
 	encode zstd gzip
+
+	# Optional site-wide password (test environment): written by gateway-entrypoint.sh when SITE_PASSWORD is set.
+	import /etc/caddy/auth*.caddy
 
 	header {
 		X-Content-Type-Options nosniff
@@ -15,7 +23,7 @@
 	}
 
 	handle /api/* {
-		reverse_proxy api:8080
+		reverse_proxy {$API_UPSTREAM:api:8080}
 	}
 
 	redir /admin /admin/

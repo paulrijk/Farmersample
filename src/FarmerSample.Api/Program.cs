@@ -5,6 +5,7 @@ using FarmerSample.Api.Endpoints;
 using FarmerSample.Core;
 using FarmerSample.Core.Modules.Identity;
 using FarmerSample.Core.Persistence;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using OpenTelemetry;
@@ -18,6 +19,9 @@ var config = builder.Configuration;
 builder.Services.AddFarmerSampleCore(
     config.GetConnectionString("Default") ?? throw new InvalidOperationException("ConnectionStrings:Default is not configured."),
     config.GetConnectionString("Blobs"));
+
+// Sign-in cookie keys live in the database, so a restart or a new version does not log everyone out.
+builder.Services.AddDataProtection().PersistKeysToDbContext<AppDbContext>().SetApplicationName("farmersample");
 
 // ---- Identity: cookie sessions, no tokens in the browser ----
 builder.Services

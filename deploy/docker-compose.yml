@@ -75,6 +75,10 @@ services:
     profiles: [app]
     build: { context: .., dockerfile: deploy/web.Dockerfile }
     ports: ["8080:80"]
+    environment:
+      # Set SITE_PASSWORD in .env to put the whole site behind one shared password (as on the test site).
+      SITE_USER: ${SITE_USER:-farmersample}
+      SITE_PASSWORD: ${SITE_PASSWORD:-}
     depends_on: [api]
 
   stripe-cli:

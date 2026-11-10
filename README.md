@@ -6,6 +6,7 @@ Sample showroom (and later auction marketplace) for graded Sri Lankan spices.
 - Architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - Business plan (v0.1): [`docs/BUSINESS-PLAN-v0.1.md`](docs/BUSINESS-PLAN-v0.1.md)
 - Brand guidelines: [`docs/brand/BRAND-GUIDELINES.md`](docs/brand/BRAND-GUIDELINES.md)
+- Private test site on Azure: [`docs/DEPLOY-TEST.md`](docs/DEPLOY-TEST.md)
 
 ## Run it on your laptop (demo mode — needs only Docker Desktop)
 

@@ -4,6 +4,7 @@ using FarmerSample.Core.Modules.Catalogue;
 using FarmerSample.Core.Modules.Identity;
 using FarmerSample.Core.Modules.SupplyQuality;
 using FarmerSample.Core.Outbox;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,7 @@ namespace FarmerSample.Core.Persistence;
 
 /// <summary>One DbContext, one PostgreSQL schema per module (architecture D1).</summary>
 public class AppDbContext(DbContextOptions<AppDbContext> options)
-    : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>(options)
+    : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>(options), IDataProtectionKeyContext
 {
     public DbSet<LegalEntity> LegalEntities => Set<LegalEntity>();
     public DbSet<Region> Regions => Set<Region>();
@@ -26,6 +27,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<LotContribution> LotContributions => Set<LotContribution>();
     public DbSet<SampleRequest> SampleRequests => Set<SampleRequest>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -155,6 +157,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options)
         });
 
         // Infrastructure
+        b.Entity<DataProtectionKey>().ToTable("data_protection_keys", "infra");
         b.Entity<OutboxMessage>(e =>
         {
             e.ToTable("outbox_messages", "infra");

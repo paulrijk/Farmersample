@@ -1,0 +1,57 @@
+name: Deploy test site
+# Updates the Azure test site on every push to main. Does nothing until the five AZURE_* repository
+# variables exist (deploy/azure/setup.ps1 -ConnectGitHub prints them).
+on:
+  push: { branches: [main] }
+  workflow_dispatch:
+
+concurrency: { group: deploy-test, cancel-in-progress: false }
+
+permissions:
+  id-token: write   # short-lived sign-in to Azure, no stored secret
+  contents: read
+
+jobs:
+  deploy:
+    if: vars.AZURE_RESOURCE_GROUP != ''
+    runs-on: ubuntu-latest
+    env:
+      RG: ${{ vars.AZURE_RESOURCE_GROUP }}
+      ACR: ${{ vars.AZURE_REGISTRY }}
+      TAG: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build images in the registry
+        run: |
+          az acr build -r "$ACR" -t "farmersample-api:$TAG"      -f deploy/dotnet.Dockerfile --build-arg PROJECT=FarmerSample.Api . --no-logs
+          az acr build -r "$ACR" -t "farmersample-worker:$TAG"   -f deploy/dotnet.Dockerfile --build-arg PROJECT=FarmerSample.Worker . --no-logs
+          az acr build -r "$ACR" -t "farmersample-migrator:$TAG" -f deploy/dotnet.Dockerfile --build-arg PROJECT=FarmerSample.DbMigrator . --no-logs
+          az acr build -r "$ACR" -t "farmersample-gateway:$TAG"  -f deploy/web.Dockerfile . --no-logs
+
+      - name: Migrate the database
+        run: |
+          SERVER=$(az acr show -n "$ACR" --query loginServer -o tsv)
+          az containerapp job update -n farmersample-migrator -g "$RG" --image "$SERVER/farmersample-migrator:$TAG" -o none
+          EXEC=$(az containerapp job start -n farmersample-migrator -g "$RG" --query name -o tsv)
+          for i in $(seq 1 60); do
+            STATUS=$(az containerapp job execution show -n farmersample-migrator -g "$RG" --job-execution-name "$EXEC" --query properties.status -o tsv)
+            echo "migration: $STATUS"
+            [ "$STATUS" = "Succeeded" ] && exit 0
+            [ "$STATUS" = "Failed" ] && exit 1
+            sleep 10
+          done
+          echo "Migration did not finish in 10 minutes"; exit 1
+
+      - name: Update the site
+        run: |
+          SERVER=$(az acr show -n "$ACR" --query loginServer -o tsv)
+          for c in api worker gateway; do
+            az containerapp update -n farmersample -g "$RG" --container-name "$c" --image "$SERVER/farmersample-$c:$TAG" -o none
+          done
+          echo "Deployed $TAG to https://$(az containerapp show -n farmersample -g "$RG" --query properties.configuration.ingress.fqdn -o tsv)"

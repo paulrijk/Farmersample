@@ -70,11 +70,12 @@ public sealed class Seeder(AppDbContext db, UserManager<AppUser> users, RoleMana
         await EnsureUserAsync("admin@farmersample.local", "Demo Admin", password, Roles.Admin, Roles.Staff);
         await EnsureUserAsync("qc@farmersample.local", "Demo Quality Controller", password, Roles.QualityController);
         await EnsureUserAsync("field@farmersample.local", "Demo Field Agent", password, Roles.FieldAgent);
+        var shown = config["Seed:DemoPassword"] is null ? password : "(the password set in Seed:DemoPassword)";
         Console.WriteLine();
-        Console.WriteLine("Local demo logins (fictional, local only):");
-        Console.WriteLine("  admin@farmersample.local / " + password);
-        Console.WriteLine("  qc@farmersample.local    / " + password);
-        Console.WriteLine("  field@farmersample.local / " + password);
+        Console.WriteLine("Demo logins (fictional accounts):");
+        Console.WriteLine("  admin@farmersample.local / " + shown);
+        Console.WriteLine("  qc@farmersample.local    / " + shown);
+        Console.WriteLine("  field@farmersample.local / " + shown);
         Console.WriteLine();
     }
 

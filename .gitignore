@@ -11,3 +11,4 @@ web/.angular/
 .env
 *.log
 TestResults/
+deploy/azure/.db-password.local
