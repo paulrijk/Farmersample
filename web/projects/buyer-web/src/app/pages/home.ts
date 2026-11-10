@@ -33,10 +33,23 @@ type State = { status: 'loading' } | { status: 'error' } | { status: 'ok'; farms
       <h2>How it works</h2>
       <ol class="steps">
         <li class="card"><span class="num">1</span><h3>Farm visit</h3><p>Our team in Sri Lanka visits the farm, records products, volumes and harvest months, and takes a sample.</p></li>
-        <li class="card"><span class="num">2</span><h3>Graded at the hub</h3><p>Each sample is dried and graded for moisture and density. Lab tests follow when a buyer is serious.</p></li>
+        <li class="card"><span class="num">2</span><h3>Processed and graded at the hub</h3><p>We buy raw pepper and process it ourselves. Samples are prepared by hand; bulk orders are machine-processed: drying, destoning, dust removal and size grading. Each sample is graded for moisture and density. Lab tests follow when a buyer is serious.</p></li>
         <li class="card"><span class="num">3</span><h3>Order a sample</h3><p>Review the producer and grade, then request a sealed, numbered sample from that lot.</p></li>
         <li class="card"><span class="num">4</span><h3>Make an offer</h3><p>Send an offer through FarmerSample. We handle contracts, export and shipping with you.</p></li>
       </ol>
+    </section>
+
+    <section id="pepper" class="container section">
+      <div class="section-head">
+        <h2>Pepper, processed at origin</h2>
+        <p class="muted">Processing decides the quality, so every bulk order is machine-processed in Sri Lanka for a fast, clean, consistent result.</p>
+      </div>
+      <ul class="products">
+        <li class="card"><h3>Black pepper</h3><p>Dried, destoned, cleaned and size-graded. Density from 550 g/L.</p></li>
+        <li class="card"><h3>White pepper</h3><p>The black husk removed, for a clean, mild heat and light-coloured dishes.</p></li>
+        <li class="card"><h3>Red and coloured pepper</h3><p>Special processing for colour and character. Ask for current availability.</p></li>
+        <li class="card"><h3>White label</h3><p>Ground and packed in Sri Lanka to your brand and pack size.</p></li>
+      </ul>
     </section>
 
     <section id="lots" class="container section">
@@ -79,7 +92,9 @@ type State = { status: 'loading' } | { status: 'error' } | { status: 'ok'; farms
     .section { padding-top: 3.5rem; }
     .section-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
     .steps { list-style: none; padding: 0; margin: 1.5rem 0 0; display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-    .steps p { margin: 0; color: var(--color-muted); }
+    .steps p, .products p { margin: 0; color: var(--color-muted); }
+    .products { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .products h3 { margin-top: 0; }
     .num { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; background: var(--color-accent); color: var(--color-text); font-weight: 700; margin-bottom: .75rem; }
     .grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
   `,
