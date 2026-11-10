@@ -2,11 +2,11 @@
 # FarmerSample.com — Business Plan (draft v0.1)
  · 
 ## Executive summary
-FarmerSample.com (working name) is the showroom of Sri Lankan spices: a proud Sri Lankan company that shows farmers' products to international buyers through graded samples, then sells their harvest. Pepper comes first because it ships in container-size bulk, followed by true Ceylon cinnamon. We start this winter with cinnamon samples and Kandy-region pepper samples (January 2027), build a buyer community around samples, add offers and auctions once buyers are active, aim for about EUR 3M in traded value in year 2, and expand to Kerala, India, in year 3.
+FarmerSample.com (working name) is the showroom of Sri Lankan spices: a proud Sri Lankan company that shows farmers' products to international buyers through graded samples, then sells their harvest. Pepper comes first because it ships in container-size bulk, followed by true Ceylon cinnamon. We start this winter with cinnamon samples and Kandy-region pepper samples (January 2027), build a buyer community around samples, add offers and auctions once buyers are active, aim for about EUR 3M in traded value in year 2, and expand to Kerala, India, in year 3. Farmers sell us raw pepper; we dry and machine-process it ourselves, because processing decides the quality. That lets us offer black, white and coloured pepper, plus white-label grinding and packing.
 Problem: farmers sell to a few local traders at local prices, and much high-quality Ceylon pepper leaves via Indian traders at a discount. International buyers have no easy, trusted way to buy direct.
-Solution: a hybrid live and online auction platform (WeAuction technology), with a grading hub, a lab report per lot, paid sample kits, escrow and export logistics.
+Solution: a hybrid live and online auction platform (WeAuction technology), with a processing and grading hub, a lab report per lot, paid sample kits, escrow and export logistics.
 Why us: Saj, our Sri Lankan partner, brings sourcing, warehousing, certified plantations and direct contacts at the Export Development Board (EDB). Paul brings the auction technology and European buyers.
-Revenue: buyer and seller commission (around 6% combined), sample boxes sold with auction registration, buyer membership, grading, storage and logistics services, and later pre-financing and an own trading book.
+Revenue: buyer and seller commission (around 6% combined), sample boxes sold with auction registration, buyer membership, processing and white-label packing, grading, storage and logistics services, and later pre-financing and an own trading book.
 Illustrative numbers: EUR 1M traded value in year 1, EUR 3M in year 2, EUR 8M in year 3, with about EUR 57k operating profit in year 2. All figures are assumptions to be checked.
 This is draft v0.1, built on assumptions from the first brainstorm. Numbers marked as assumptions need confirming with Saj and with buyers.
 ## Problem and opportunity
@@ -57,6 +57,7 @@ Not enough volume to export
 Local
 Later, specialty lots only
 Pepper supply and seasons. Pepper grows in several regions with different harvests, so we can offer fresh pepper most of the year. Saj's coffee business partner says they can source up to about 30,000 t of fresh pepper a year, about 10,000 t once dried, roughly 770 containers of 12-13 t. That would be a large share of Sri Lanka's 25,259 t of exports in 2024, so we treat it as an upper limit to confirm.
+Pepper processing and product lines. Farmers sell raw pepper to Saj Company; we dry and process it at the hub. Processing decides the quality. Small sample quantities are processed by hand; bulk orders go through machines (drying, destoning, dust removal and size grading), which is faster and gives cleaner, better quality. From the same raw pepper we can make standard black pepper, white pepper (black husk removed), and red and other coloured pepper, which are now popular. We can also grind and pack for white-label orders, which keeps more value in Sri Lanka and gives buyers finished, branded product. Open question: processing capacity and cost per kg for each line.
 Region
 Harvest
 Role in the plan
@@ -75,7 +76,7 @@ Second window
 Region names are as heard on the call and need confirming with Saj.
 Cinnamon supply and grades. Cinnamon is cut every 3-4 months all year, except in the rainy season, so samples can be sent straight away. The grade (Alba is the thinnest quill, thinner than a pencil, then C5, C4 and lower) depends on the skill of specialist cutters. Cutters usually take half of the harvest as payment (it used to be a third), so the grower keeps only half. Showing the grower's share per lot is a strong part of our story.
 Price reference points (2026). Selina Wamucii put the Sri Lankan farmgate pepper price at USD 5.90/kg in June 2026. Indian black pepper 500 g/L was offered at around EUR 5.4-7.9/kg FOB across 2026. Saj's season and off-season prices fit these levels.
-Target buyers. These are spice importers, grinders and packers, food manufacturers and specialty retailers in the EU (Spain, Germany, Netherlands, UK), the US and the Gulf. The Middle East is a very large spice market to approach early, and award-winning lots can reach 5-star hotels and restaurants. Ten committed buyers are enough to start.
+Target buyers. These are spice importers, grinders and packers, food manufacturers, specialty retailers and private-label brands (for white-label ground and packed pepper) in the EU (Spain, Germany, Netherlands, UK), the US and the Gulf. The Middle East is a very large spice market to approach early, and award-winning lots can reach 5-star hotels and restaurants. Ten committed buyers are enough to start.
 Kerala, India (phase 3). Kerala is a much bigger spice region with similar village-level trading. Its cardamom is already sold through Spices Board e-auctions run by licensed auctioneers, so FarmerSample would focus there on pepper, cinnamon, cloves, nutmeg and turmeric, or partner with a licensed auctioneer. Paul knows a small, well-connected farm in Kerala that could be our first partner there. Like Saj in Sri Lanka, we will need a local person who knows the market and can do the groundwork.
 Open question: volumes by product and grade that Saj's network can supply each season.
 ## Solution: how the marketplace works
@@ -85,7 +86,7 @@ Samples go out before the auction, and the farmer is paid from escrow once the g
 We start with a sample showroom, not auctions: farmer profiles in a web app where international buyers order samples and make offers. Samples are where buyer trust begins, and this step proves demand at low cost before we build escrow, logistics and auctions.
 How the sample showroom works
 Farm visits. The Export Development Board (EDB) shares its data on plantations, hectares and farmers, and the regional agricultural officers take Saj's team to the farms. The message is simple: "we are a proud Sri Lankan company showing your product to international buyers." The team takes photos and the farm story, records volumes, grades, harvest period and certifications, gives each farm a QR code, and collects 1-2 kg of sample per product.
-Grade and seal. At the hub, pepper is dried (6-7 days), then each sample is graded with moisture meters and density checks, and split into numbered, sealed pouches with the farm's QR code. Lab tests follow only when a buyer is serious. From farm to sample in Spain takes about 2 weeks.
+Process, grade and seal. Farmers deliver raw pepper. At the hub it is dried (6-7 days) and processed into black, white or coloured pepper: by hand for small sample quantities, by machine (destoning, dust removal, size grading) for bulk, then each sample is graded with moisture meters and density checks, and split into numbered, sealed pouches with the farm's QR code. Lab tests follow only when a buyer is serious. From farm to sample in Spain takes about 2 weeks.
 Farmer profiles. The web app shows each farmer with products, available volume, harvest period, certifications, photos and an indicative price range. Each sample shows a "valid until" date and the volume behind it.
 Order samples. Buyers order single samples or a "Sri Lanka discovery box" with several farmers.
 Make offers. Buyers send an offer through the platform (product, volume, price, delivery). FarmerSample and Saj negotiate and close the deal.
@@ -151,6 +152,10 @@ Storage
 Per tonne per month in Saj's warehouses
 Year 2
 2. Services
+Processing and white-label packing
+Margin on processing black, white and coloured pepper, and on grinding and packing to the buyer's brand
+Year 1-2
+2. Services
 Annual competition ("Ceylon Spice Awards", working name)
 Entry fees and sponsors cover most costs; value is press and premium prices
 Year 2
@@ -168,7 +173,7 @@ Rule on own trading. If FarmerSample or Saj also trades its own stock, sellers m
 The brand promise is proof, not a logo: every lot shows its farm, its lab report and how much of the hammer price went to the farmer. Proof builds trust with buyers and also avoids the legal risk of making our own "fair" claims.
 Name. FarmerSample.com is the working name. It says what we do first: show farmers' products and send their samples to buyers. It also avoids the word "fair": "Fairtrade" is a protected certification mark, and EU rules on green and social claims (Directive 2024/825, applying from autumn 2026) restrict self-made sustainability labels. Next: secure the domain and check trademarks in the EU, UK, US, Sri Lanka and India. Once auctions start, the name still fits, because every lot is sold on its sample. Paul and Saj both like it because it says exactly what we do. Saj checks the Sri Lankan trademark; Paul checks the .com and the EU trademark. A second, heritage-style name for auctions or awards, with the authenticity of the Colombo Tea Auction, is still open.
 Trust built into each lot
-Grading at intake: moisture, density (pepper above 550 g/L), cleanliness, grade (for example cinnamon Alba, C5, C4).
+Processing and grading at intake: drying, destoning, dust removal and size grading (by machine for bulk, by hand for samples); then moisture, density (pepper above 550 g/L), cleanliness, size grade, grade (for example cinnamon Alba, C5, C4).
 Lab report: piperine or oil content, pesticide residues against EU and US limits, aflatoxin and microbiology.
 Sealed, numbered samples taken from the same lot. If the delivery does not match the sample, FarmerSample mediates and the buyer gets a refund.
 Escrow: the buyer pays FarmerSample, and the seller is paid when the goods are shipped or accepted.
@@ -207,7 +212,7 @@ Saj
 Farmer and plantation network, certifications, intake contracts
 Grading hub and warehousing
 Saj
-Intake, drying, grading, storage, sample packing, export shipping
+Intake of raw pepper, drying, machine processing (destoning, dust removal, size grading), black/white/coloured pepper, white-label grinding and packing, grading, storage, sample packing, export shipping
 Operations coordinator (hire)
 Local, year 1
 Lot listing, photos, lab samples, courier dispatch
@@ -311,7 +316,7 @@ High
 No contact details on profiles; quality guarantee, escrow, logistics and customs handled by us, wider choice of farms; lower commission for repeat buyers
 Delivered goods do not match the sample, or the sampled stock is already sold
 High
-Sealed numbered samples from the same lot, "valid until" date and volume on every sample, lab report, mediation and refund policy
+Sealed numbered samples from the same lot; because samples are hand-processed and bulk is machine-processed, grade the first bulk batch against its sample and state the bulk specification (moisture, density, size grade) on every sample; "valid until" date and volume on every sample, lab report, mediation and refund policy
 Adulterated or low-quality goods from farms
 High
 Moisture meters and grading equipment at the hub, Saj's team's expertise, lab test before export
@@ -361,6 +366,7 @@ Number of farmers and plantations, and which certifications they hold
 Export registration and licences already in place
 Cost and fastest way to send a monthly sample batch to Spain by air
 Labs used for pepper and cinnamon, and their price per test
+Processing capacity and cost per kg for black, white and coloured pepper, which coloured methods he can offer, and minimum order and price for white-label grinding and packing
 Meeting with EDB directors to present the plan
 His role: platform operator, supplier on the platform, or both; and whether he acts as exporter of record for showroom deals
 For Paul
@@ -371,7 +377,7 @@ Look into Middle East buyers and the market for turmeric and ginger (food and co
 Talk to the Kerala farm contact about a future partnership
 Decisions to make together
 Final brand name (FarmerSample.com for now), and whether a heritage-style name is needed for auctions or awards
-Which pepper regions and cinnamon grades go in the first sample batch
+Which pepper regions, pepper types (black, white, coloured) and cinnamon grades go in the first sample batch
 Set-up of the Sri Lankan and European companies
 Go or no-go after the 1-2 month review
 ## Sources
