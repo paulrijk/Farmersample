@@ -41,6 +41,10 @@ It then prints the site address. With `-ConnectGitHub` it also prints five value
 Options: `-Location spaincentral` (default `westeurope`), `-CustomDomain test.farmersample.com`,
 `-ResourceGroup <name>`.
 
+If the first "Deploy test site" run fails at the Azure login with `AADSTS700213`, GitHub is signing in with an
+identity that includes ID numbers. Run `deploy\azure\fix-github-login.ps1 -Subject "<subject from the error>"`
+once, then re-run the workflow.
+
 ## Good to know
 
 - **Changing a password**: run the script again with the new password.

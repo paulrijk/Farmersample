@@ -100,5 +100,7 @@ if ($ConnectGitHub) {
   Write-Host "  AZURE_SUBSCRIPTION_ID  = $SubscriptionId"
   Write-Host "  AZURE_RESOURCE_GROUP   = $ResourceGroup"
   Write-Host "  AZURE_REGISTRY         = $registry"
+  Write-Host "If the first deployment fails with AADSTS700213 (no matching federated identity), run deploy\azure\fix-github-login.ps1"
+  Write-Host "with the subject from that error: newer repositories sign in with ID numbers in their identity."
   Write-Host "(These are identifiers, not passwords. GitHub signs in with a short-lived token, so no secret is stored.)"
 }
